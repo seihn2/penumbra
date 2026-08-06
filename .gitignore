@@ -1,0 +1,25 @@
+node_modules
+out
+dist
+.DS_Store
+.eslintcache
+*.log*
+.env*
+.playwright-mcp/
+
+# Local agent/editor instructions and machine-specific state
+AGENTS.md
+CLAUDE.md
+.claude/
+.codex/
+.cursor/
+.idea/
+.vscode/
+
+# Credentials and signing material
+.npmrc
+*.key
+*.pem
+*.p12
+*.pfx
+*.mobileprovision

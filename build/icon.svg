@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Penumbra vector app icon">
+  <defs>
+    <clipPath id="clipIcon">
+      <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230"/>
+    </clipPath>
+
+    <radialGradient id="spaceBg" cx="56%" cy="50%" r="78%">
+      <stop offset="0%" stop-color="#241436"/>
+      <stop offset="45%" stop-color="#160d24"/>
+      <stop offset="78%" stop-color="#0b0812"/>
+      <stop offset="100%" stop-color="#050407"/>
+    </radialGradient>
+
+    <radialGradient id="subtleVignette" cx="53%" cy="49%" r="82%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="55%" stop-color="#2a173c" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </radialGradient>
+
+    <radialGradient id="sunGlow" cx="64%" cy="46%" r="62%">
+      <stop offset="0%" stop-color="#fff2bd" stop-opacity="1"/>
+      <stop offset="22%" stop-color="#ffd17d" stop-opacity="1"/>
+      <stop offset="48%" stop-color="#d88456" stop-opacity="0.86"/>
+      <stop offset="72%" stop-color="#6d3552" stop-opacity="0.42"/>
+      <stop offset="100%" stop-color="#1a0f2a" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="litMoon" cx="76%" cy="44%" r="68%">
+      <stop offset="0%" stop-color="#fff1bd"/>
+      <stop offset="24%" stop-color="#ffd18a"/>
+      <stop offset="51%" stop-color="#c77a59"/>
+      <stop offset="76%" stop-color="#553052"/>
+      <stop offset="100%" stop-color="#120a20"/>
+    </radialGradient>
+
+    <linearGradient id="terminator" x1="18%" y1="47%" x2="83%" y2="50%">
+      <stop offset="0%" stop-color="#05030a"/>
+      <stop offset="48%" stop-color="#11091c"/>
+      <stop offset="62%" stop-color="#39213d"/>
+      <stop offset="76%" stop-color="#9f5f54"/>
+      <stop offset="100%" stop-color="#ffe1a2"/>
+    </linearGradient>
+
+    <radialGradient id="darkDisc" cx="42%" cy="46%" r="62%">
+      <stop offset="0%" stop-color="#151020"/>
+      <stop offset="63%" stop-color="#0a0711"/>
+      <stop offset="100%" stop-color="#030307"/>
+    </radialGradient>
+
+    <filter id="blur18" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="blur36" x="-55%" y="-55%" width="210%" height="210%">
+      <feGaussianBlur stdDeviation="36"/>
+    </filter>
+    <filter id="blur7" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+
+    <linearGradient id="fineSurface" x1="38%" y1="20%" x2="70%" y2="88%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="42%" stop-color="#fff0c6" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#2a1730" stop-opacity="0"/>
+    </linearGradient>
+
+    <symbol id="spark" viewBox="-8 -8 16 16">
+      <path d="M0,-8 L1.35,-1.35 L8,0 L1.35,1.35 L0,8 L-1.35,1.35 L-8,0 L-1.35,-1.35 Z"/>
+    </symbol>
+  </defs>
+
+
+
+  <g clip-path="url(#clipIcon)">
+    <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="url(#spaceBg)"/>
+    <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="url(#subtleVignette)"/>
+
+    <!-- Sparse celestial field -->
+    <g opacity="0.94">
+      <circle cx="124" cy="171" r="1.4" fill="#f5c477" opacity="0.85"/>
+      <circle cx="205" cy="203" r="1.4" fill="#b57de0" opacity="0.55"/>
+      <circle cx="313" cy="109" r="1.35" fill="#f4c47b" opacity="0.9"/>
+      <circle cx="438" cy="125" r="1.55" fill="#ffd9a6" opacity="0.85"/>
+      <circle cx="652" cy="110" r="1.25" fill="#a970d7" opacity="0.6"/>
+      <circle cx="730" cy="109" r="1.2" fill="#b176d9" opacity="0.6"/>
+      <circle cx="890" cy="269" r="1.6" fill="#eeb15e" opacity="0.9"/>
+      <circle cx="855" cy="447" r="1.2" fill="#8d5dc5" opacity="0.6"/>
+      <circle cx="898" cy="608" r="1.45" fill="#ffd18f" opacity="0.9"/>
+      <circle cx="907" cy="735" r="1.35" fill="#a65fd0" opacity="0.7"/>
+      <circle cx="746" cy="847" r="1.45" fill="#ffc782" opacity="0.85"/>
+      <circle cx="625" cy="777" r="1.35" fill="#c979df" opacity="0.7"/>
+      <circle cx="359" cy="919" r="1.45" fill="#ffc785" opacity="0.85"/>
+      <circle cx="164" cy="871" r="1.35" fill="#d290ff" opacity="0.8"/>
+      <circle cx="221" cy="822" r="2.0" fill="#f2b45d" opacity="0.86"/>
+      <circle cx="126" cy="350" r="1.55" fill="#d9a9ff" opacity="0.75"/>
+      <circle cx="736" cy="648" r="1.55" fill="#cda0ff" opacity="0.75"/>
+      <circle cx="855" cy="581" r="1.45" fill="#ffcf87" opacity="0.88"/>
+      <circle cx="666" cy="822" r="1.25" fill="#f0b66a" opacity="0.75"/>
+      <circle cx="890" cy="516" r="1.6" fill="#ffdba9" opacity="0.8"/>
+    </g>
+    <use href="#spark" x="827" y="172" width="20" height="20" fill="#eec7ff" opacity="0.75"/>
+    <use href="#spark" x="147" y="248" width="20" height="20" fill="#ffbe68" opacity="0.78"/>
+    <use href="#spark" x="835" y="805" width="17" height="17" fill="#ffb85f" opacity="0.78"/>
+
+    <!-- Penumbral atmosphere and illuminated body -->
+    <circle cx="572" cy="517" r="358" fill="url(#sunGlow)" opacity="0.85" filter="url(#blur36)"/>
+    <circle cx="572" cy="517" r="338" fill="url(#litMoon)"/>
+    <circle cx="572" cy="517" r="335" fill="url(#fineSurface)" opacity="0.35"/>
+
+    <!-- Soft rim and glow on the lit crescent -->
+    <circle cx="572" cy="517" r="339" fill="none" stroke="#ffe7ad" stroke-width="6" opacity="0.50"/>
+    <circle cx="572" cy="517" r="339" fill="none" stroke="#f2a35d" stroke-width="20" opacity="0.18" filter="url(#blur18)"/>
+
+    <!-- Eclipsing body / soft penumbra terminator -->
+    <circle cx="441" cy="518" r="333" fill="#07040c" opacity="0.80" filter="url(#blur18)"/>
+    <circle cx="441" cy="518" r="329" fill="url(#darkDisc)" opacity="0.98"/>
+    <circle cx="441" cy="518" r="330" fill="none" stroke="#2a1835" stroke-width="1.4" opacity="0.34"/>
+    <circle cx="441" cy="518" r="329" fill="url(#terminator)" opacity="0.10"/>
+
+    <!-- Extra warm penumbral feather on the visible crescent edge -->
+    <path d="M678 195 C821 270 887 406 862 562 C836 725 713 829 560 834 C680 762 745 646 745 516 C745 386 719 274 678 195 Z" fill="#f0a55f" opacity="0.12" filter="url(#blur18)"/>
+    <path d="M718 248 C821 330 859 452 833 582 C808 704 724 793 608 813 C700 739 754 635 754 520 C754 406 740 318 718 248 Z" fill="#fff0ba" opacity="0.10" filter="url(#blur7)"/>
+  </g>
+</svg>

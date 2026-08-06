@@ -1,0 +1,703 @@
+@import './base.css';
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply text-foreground;
+  }
+}
+
+/* Dark, thin scrollbars everywhere so macOS doesn't paint a white track. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.55);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* macOS: render the frameless transparent window as a rounded floating panel.
+   Keep html/body fully transparent so the native window shadow follows the
+   rounded #root instead of a black rectangle behind it. */
+html.is-mac,
+html.is-mac body {
+  background: transparent;
+}
+html.is-mac #root {
+  height: 100vh;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+/* Windows/Linux: also a frameless transparent window. Keep it rounded and clip
+   content; the custom title-bar controls (incl. close) live in the header. */
+html.is-win,
+html.is-win body {
+  background: transparent;
+}
+html.is-win #root {
+  height: 100vh;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+#app-header {
+  @apply flex h-12 items-center border-b text-[var(--text-primary)];
+  border-color: var(--hairline);
+  background-color: color-mix(
+    in srgb,
+    var(--app-bg) calc(var(--window-opacity, 1) * 100%),
+    transparent
+  );
+  -webkit-app-region: drag;
+  .actions {
+    -webkit-app-region: no-drag;
+  }
+}
+
+/* Shared by the coder main AND the standalone settings/help pages. The latter
+   mount directly under #root (no flex parent), so they need an explicit height
+   to scroll within; the coder main overrides this with `!h-full` + flex-1 since
+   its in-flow statusbar makes a fixed 100vh-48px wrong there. */
+#app-content {
+  @apply h-[calc(100vh-48px)] overflow-y-auto;
+}
+
+/* Three independent opacity layers:
+   - Overall opacity = native window.setOpacity (whole window incl. chrome).
+   - Window opacity (--window-opacity) = background/chrome alpha only. At 0 the
+     panels vanish and text floats on the transparent window.
+   - Text opacity (--content-opacity) = text fill only, via -webkit-text-fill-color
+     so backgrounds are never touched.
+   The workbench/settings background is a flat solid layer behind the content. */
+.workbench-shell,
+.settings-shell {
+  @apply relative min-h-full text-[var(--text-primary)];
+  padding: var(--space-page) var(--space-page) 0;
+}
+.workbench-shell {
+  padding-bottom: var(--space-page);
+}
+.settings-shell {
+  padding-bottom: 40px;
+}
+.workbench-shell::before,
+.settings-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--app-bg);
+  opacity: var(--window-opacity, 1);
+  pointer-events: none;
+}
+
+/* Text-only opacity: tint the text fill without affecting any background. */
+.workbench-shell,
+.workbench-shell *,
+.settings-shell,
+.settings-shell * {
+  -webkit-text-fill-color: color-mix(
+    in srgb,
+    currentColor calc(var(--content-opacity, 1) * 100%),
+    transparent
+  );
+}
+
+/* ── Shared flat surface helpers ──────────────────────────────────── */
+.workbench-hero,
+.settings-hero {
+  @apply mb-5 flex items-center justify-between border;
+  border-radius: var(--r-card);
+  border-color: var(--hairline);
+  padding: 16px 18px;
+  background-color: color-mix(
+    in srgb,
+    var(--surface-1) calc(var(--window-opacity, 1) * 100%),
+    transparent
+  );
+}
+
+.workbench-eyebrow {
+  @apply text-[11px] font-medium uppercase tracking-[0.18em];
+  color: var(--text-tertiary);
+}
+
+.workbench-title {
+  @apply mt-1 text-xl font-semibold tracking-tight;
+  color: var(--text-primary);
+}
+
+.workbench-status-pill {
+  @apply px-2.5 py-1 text-xs font-medium;
+  border-radius: var(--r-pill);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+.workbench-grid {
+  @apply grid md:grid-cols-[260px_minmax(0,1fr)];
+  gap: var(--gap);
+}
+
+/* ── Conversation flow (chat) layout ──────────────────────────────── */
+.chat-flow {
+  @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 overflow-y-auto pb-4;
+}
+.chat-msg-user {
+  @apply flex justify-end;
+}
+.chat-msg-assistant {
+  @apply flex justify-start;
+}
+.chat-bubble-user {
+  @apply max-w-[78%] whitespace-pre-wrap break-words px-3.5 py-2.5 text-sm;
+  border-radius: var(--r-card);
+  background-color: var(--accent-soft);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-border);
+}
+.chat-shot {
+  @apply relative overflow-hidden;
+  border-radius: var(--r-card);
+  border: 1px solid var(--hairline);
+  background-color: var(--surface-2);
+  max-width: 70%;
+  padding: 6px;
+}
+.chat-shot img {
+  @apply block w-full;
+  border-radius: 6px;
+}
+.chat-shot-tag {
+  @apply absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center;
+  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+.chat-shot-placeholder {
+  @apply flex items-center gap-2 px-3 py-2 text-xs;
+  border-radius: var(--r-control);
+  border: 1px dashed var(--hairline);
+  background-color: var(--surface-2);
+  color: var(--text-tertiary);
+}
+.chat-bubble-assistant {
+  @apply relative max-w-[92%] px-4 py-3;
+  border-radius: var(--r-card);
+  border: 1px solid var(--hairline);
+  background-color: var(--surface-1);
+}
+.chat-bubble-assistant.is-error {
+  border-color: color-mix(in srgb, red 45%, var(--hairline));
+  background-color: color-mix(in srgb, red 8%, var(--surface-1));
+}
+.chat-copy-actions {
+  @apply absolute right-2 top-2 flex items-center gap-1.5 opacity-0 transition-opacity;
+}
+.chat-qtype-badge {
+  @apply block w-fit rounded-[var(--r-pill)] px-1.5 py-0.5 text-[10px] font-medium;
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+.chat-scaffold {
+  @apply mb-1.5 flex flex-col gap-1.5;
+}
+.chat-scaffold-toggle {
+  @apply flex items-center gap-2 text-left;
+}
+.chat-scaffold-hint {
+  @apply flex items-center gap-1 text-[10px] font-medium;
+  color: var(--text-tertiary);
+}
+.chat-scaffold-hint:hover {
+  color: var(--text-secondary);
+}
+.chat-scaffold-steps {
+  @apply flex list-none flex-col gap-1 rounded-[var(--r-control)] p-2 text-[11px];
+  border: 1px solid var(--hairline);
+  background-color: var(--surface-2);
+  counter-reset: scaffold-step;
+}
+.chat-scaffold-steps li {
+  @apply flex items-baseline gap-1.5;
+  color: var(--text-secondary);
+}
+.chat-scaffold-steps li::before {
+  counter-increment: scaffold-step;
+  content: counter(scaffold-step);
+  @apply flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold;
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+.chat-scaffold-optional {
+  @apply ml-1 rounded-[var(--r-pill)] px-1 py-px text-[9px];
+  background-color: var(--surface-3);
+  color: var(--text-tertiary);
+}
+.chat-bubble-assistant:hover .chat-copy-actions {
+  @apply opacity-100;
+}
+.chat-copy-btn {
+  @apply flex h-7 w-7 items-center justify-center transition-colors;
+  border-radius: var(--r-control);
+  border: 1px solid var(--hairline);
+  background-color: var(--surface-2);
+  color: var(--text-secondary);
+}
+.chat-copy-btn:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+.brief-input {
+  @apply w-full resize-none px-2.5 py-1.5 text-xs;
+  border-radius: var(--r-control);
+  border: 1px solid var(--hairline);
+  background-color: var(--surface-2);
+  color: var(--text-primary);
+}
+.brief-input:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+.chat-typing {
+  @apply flex items-center gap-1 py-1;
+}
+.chat-typing span {
+  @apply inline-block h-1.5 w-1.5 rounded-full;
+  background-color: var(--text-tertiary);
+  animation: chat-typing-bounce 1.2s infinite ease-in-out;
+}
+.chat-typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.chat-typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes chat-typing-bounce {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+.chat-empty {
+  @apply mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-5 text-center text-sm;
+  color: var(--text-tertiary);
+}
+
+.chat-composer {
+  @apply sticky bottom-0 mx-auto flex w-full max-w-3xl items-end gap-2 pt-2;
+}
+.chat-composer-wrap {
+  @apply mx-auto w-full max-w-3xl;
+}
+.ime-warning {
+  @apply mx-auto mb-1 w-full max-w-3xl rounded-md px-3 py-1.5 text-xs;
+  background-color: color-mix(in oklch, var(--warning, #f5a623) 18%, transparent);
+  border: 1px solid color-mix(in oklch, var(--warning, #f5a623) 45%, transparent);
+  color: var(--text-primary);
+}
+.chat-composer-input {
+  @apply max-h-32 min-h-[40px] flex-1 resize-none px-3 py-2.5 text-sm outline-none;
+  border-radius: var(--r-card);
+  border: 1px solid var(--hairline);
+  background-color: var(--surface-2);
+  color: var(--text-primary);
+}
+.chat-composer-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.chat-composer-send {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center transition-colors;
+  border-radius: var(--r-card);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+.chat-composer-send:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+}
+.chat-composer-send:disabled {
+  @apply cursor-not-allowed opacity-40;
+}
+
+.workbench-context-card,
+.workbench-answer-card,
+.settings-card {
+  @apply border;
+  border-radius: var(--r-card);
+  border-color: var(--hairline);
+  background-color: color-mix(
+    in srgb,
+    var(--surface-1) calc(var(--window-opacity, 1) * 100%),
+    transparent
+  );
+}
+
+.workbench-context-card {
+  @apply min-h-[360px] p-4;
+}
+
+.workbench-answer-card {
+  @apply min-h-[520px] overflow-hidden p-5;
+}
+
+.workbench-card-header {
+  @apply mb-4 flex items-start justify-between gap-3 border-b pb-3;
+  border-color: var(--hairline);
+}
+
+.workbench-card-header h2 {
+  @apply text-sm font-semibold;
+  color: var(--text-primary);
+}
+
+.workbench-card-header span {
+  @apply px-2 py-0.5 text-[11px];
+  border-radius: var(--r-pill);
+  background-color: var(--surface-3);
+  color: var(--text-secondary);
+}
+
+.workbench-card-kicker {
+  @apply text-[10px] font-medium uppercase tracking-[0.16em];
+  color: var(--text-tertiary);
+}
+
+.workbench-copy-btn {
+  @apply flex h-7 w-7 items-center justify-center transition-colors;
+  border-radius: var(--r-control);
+  border: 1px solid var(--hairline);
+  background-color: var(--surface-2);
+  color: var(--text-secondary);
+}
+.workbench-copy-btn:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.workbench-shot-list {
+  @apply flex flex-col gap-3;
+}
+
+.workbench-shot-item {
+  @apply overflow-hidden border p-2 transition-colors;
+  border-radius: var(--r-control);
+  border-color: var(--hairline);
+  background-color: var(--surface-2);
+}
+.workbench-shot-item:hover {
+  border-color: var(--accent-border);
+}
+
+.workbench-shot-item span {
+  @apply mb-2 inline-flex px-2 py-0.5 text-[10px];
+  border-radius: var(--r-pill);
+  background-color: var(--surface-3);
+  color: var(--text-secondary);
+}
+
+.workbench-shot-item img {
+  @apply w-full border;
+  border-radius: 6px;
+  border-color: var(--hairline);
+}
+
+.workbench-markdown {
+  @apply max-w-none;
+  color: var(--text-primary);
+  font-size: var(--answer-font-size, 14px);
+}
+
+.workbench-empty-answer,
+.workbench-shortcut-tip {
+  @apply flex min-h-[320px] flex-col items-center justify-center gap-3 text-center text-sm;
+  color: var(--text-tertiary);
+}
+
+.workbench-empty-title {
+  @apply mb-1 text-sm font-medium;
+  color: var(--text-secondary);
+}
+
+.workbench-shortcut-key {
+  @apply px-2 py-1;
+  border-radius: var(--r-control);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+.workbench-error {
+  @apply mb-4 flex items-start gap-3 border p-3.5;
+  border-radius: var(--r-card);
+  border-color: color-mix(in srgb, var(--destructive) 35%, transparent);
+  background-color: color-mix(in srgb, var(--destructive) 12%, transparent);
+  color: oklch(0.9 0.05 25);
+}
+
+.workbench-error-hint {
+  @apply mt-2 text-xs;
+  color: var(--text-tertiary);
+}
+
+.workbench-retry-btn {
+  @apply mt-3 px-3 py-1.5 text-xs font-medium transition-colors;
+  border-radius: var(--r-control);
+  border: 1px solid color-mix(in srgb, var(--destructive) 40%, transparent);
+  color: oklch(0.9 0.05 25);
+}
+.workbench-retry-btn:hover {
+  background-color: color-mix(in srgb, var(--destructive) 16%, transparent);
+}
+
+.workbench-error-close {
+  @apply flex h-6 w-6 items-center justify-center transition-colors;
+  border-radius: var(--r-pill);
+  color: var(--text-secondary);
+}
+.workbench-error-close:hover {
+  background-color: var(--surface-3);
+  color: var(--text-primary);
+}
+
+.workbench-statusbar {
+  @apply flex w-full shrink-0 items-center justify-between border-t px-4 py-2;
+  border-color: var(--hairline);
+  color: var(--text-secondary);
+  background-color: color-mix(
+    in srgb,
+    var(--app-bg) calc(var(--window-opacity, 1) * 100%),
+    transparent
+  );
+}
+
+.transcription-scroll {
+  overflow: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.transcription-scroll:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+.transcription-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.transcription-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+}
+.transcription-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Settings ─────────────────────────────────────────────────────── */
+.settings-grid {
+  @apply grid xl:grid-cols-2;
+  gap: var(--gap);
+}
+
+.settings-card {
+  @apply p-5;
+}
+
+.settings-card-header {
+  @apply mb-5 flex items-start gap-3 border-b pb-4;
+  border-color: var(--hairline);
+}
+
+.settings-card-icon {
+  @apply flex h-8 w-8 shrink-0 items-center justify-center;
+  border-radius: var(--r-control);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+.settings-card-header h2 {
+  @apply text-sm font-semibold;
+  color: var(--text-primary);
+}
+
+.settings-card-header p {
+  @apply mt-1 text-xs leading-relaxed;
+  color: var(--text-secondary);
+}
+
+.settings-card-body {
+  @apply space-y-3;
+}
+
+.settings-row {
+  @apply flex flex-col gap-2.5 p-3.5;
+  border-radius: var(--r-control);
+  background-color: var(--surface-2);
+}
+
+.settings-row-title {
+  @apply text-sm font-medium;
+  color: var(--text-primary);
+}
+
+.settings-row-desc {
+  @apply mt-1 text-xs leading-relaxed;
+  color: var(--text-tertiary);
+}
+
+.settings-row-control {
+  @apply flex w-full items-center;
+}
+
+.settings-input,
+.settings-select {
+  @apply h-9 w-full border px-3 text-sm outline-none transition-colors;
+  border-radius: var(--r-control);
+  border-color: var(--hairline);
+  background-color: var(--surface-3);
+  color: var(--text-primary);
+}
+.settings-input:focus,
+.settings-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.settings-secret-input {
+  @apply flex w-full overflow-hidden border;
+  border-radius: var(--r-control);
+  border-color: var(--hairline);
+  background-color: var(--surface-3);
+}
+.settings-secret-input:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.settings-secret-input input {
+  @apply h-9 min-w-0 flex-1 bg-transparent px-3 text-sm outline-none;
+  color: var(--text-primary);
+}
+
+.settings-path-button {
+  @apply max-w-64 truncate border px-3 py-2 text-xs transition-colors;
+  border-radius: var(--r-control);
+  border-color: var(--hairline);
+  background-color: var(--surface-3);
+  color: var(--text-secondary);
+}
+.settings-path-button:hover {
+  border-color: var(--accent-border);
+  color: var(--text-primary);
+}
+
+.settings-note {
+  @apply border p-3 text-xs leading-relaxed;
+  border-radius: var(--r-control);
+  border-color: var(--hairline);
+  background-color: var(--surface-2);
+  color: var(--text-secondary);
+}
+
+.settings-note-info {
+  border-color: var(--accent-border);
+  background-color: var(--accent-soft);
+  color: var(--text-secondary);
+}
+
+.settings-security-summary {
+  @apply flex items-center justify-between gap-4 p-3;
+  border-radius: var(--r-control);
+  background-color: var(--surface-2);
+}
+
+.settings-security-badge {
+  @apply shrink-0 px-2.5 py-1 text-xs font-medium;
+  border-radius: var(--r-pill);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ── History panel ────────────────────────────────────────────────── */
+.history-scrim {
+  @apply fixed inset-0 z-30 bg-black/40;
+}
+.history-panel {
+  @apply fixed right-0 top-0 z-40 flex h-full w-80 flex-col border-l;
+  border-color: var(--hairline);
+  background-color: var(--surface-1);
+}
+.history-header {
+  @apply flex items-center justify-between border-b px-4 py-3 text-sm font-semibold;
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
+.history-close {
+  @apply flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-3)];
+}
+.history-list {
+  @apply flex-1 space-y-1 overflow-y-auto p-2;
+}
+.history-empty {
+  @apply px-2 py-6 text-center text-xs;
+  color: var(--text-tertiary);
+}
+.history-item {
+  @apply flex items-stretch gap-1 rounded-[var(--r-control)] transition-colors hover:bg-[var(--surface-2)];
+}
+.history-item-main {
+  @apply flex min-w-0 flex-1 flex-col items-start gap-0.5 px-3 py-2 text-left;
+}
+.history-item-title {
+  @apply w-full truncate text-sm;
+  color: var(--text-primary);
+}
+.history-item-meta {
+  @apply text-[10px];
+  color: var(--text-tertiary);
+}
+.history-item-del {
+  @apply mr-1 hidden w-7 shrink-0 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:text-red-400 group-hover:flex;
+}
+
+/* Lightweight tooltip: element with [data-tip] shows its text on hover.
+   Native title tooltips are unreliable on the transparent always-on-top
+   window, so we render our own. */
+.tip {
+  @apply relative;
+}
+.tip::after {
+  content: attr(data-tip);
+  @apply pointer-events-none absolute left-1/2 top-full z-50 mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-[var(--r-control)] px-2 py-1 text-[11px] opacity-0 transition-opacity duration-150;
+  background-color: var(--surface-3);
+  color: var(--text-primary);
+  border: 1px solid var(--hairline);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.tip:hover::after {
+  @apply opacity-100;
+}

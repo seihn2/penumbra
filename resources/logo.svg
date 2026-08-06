@@ -1,0 +1,35 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Penumbra logo: an eclipse — a dark disc with a luminous crescent of
+       penumbra light along one edge. Minimal, flat, deep. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#1b2027"/>
+      <stop offset="100%" stop-color="#0b0d10"/>
+    </radialGradient>
+    <linearGradient id="crescent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7cc4f0"/>
+      <stop offset="55%" stop-color="#4aa3df"/>
+      <stop offset="100%" stop-color="#2d6fa0"/>
+    </linearGradient>
+    <clipPath id="disc">
+      <circle cx="256" cy="256" r="150"/>
+    </clipPath>
+  </defs>
+
+  <!-- App tile background -->
+  <rect x="36" y="36" width="440" height="440" rx="100" fill="url(#bg)"/>
+  <rect x="36.5" y="36.5" width="439" height="439" rx="99.5" stroke="#ffffff" stroke-opacity="0.08"/>
+
+  <!-- Eclipse disc -->
+  <g clip-path="url(#disc)">
+    <circle cx="256" cy="256" r="150" fill="#0e1216"/>
+    <!-- Penumbra crescent: a bright disc offset and masked by the dark disc -->
+    <circle cx="206" cy="216" r="150" fill="url(#crescent)"/>
+    <circle cx="256" cy="256" r="150" fill="#0e1216"/>
+    <!-- thin glowing rim of remaining light -->
+    <circle cx="206" cy="216" r="150" fill="none" stroke="#9ad2f5" stroke-width="0" />
+  </g>
+  <!-- Outer luminous ring fragment (the penumbra halo) -->
+  <circle cx="256" cy="256" r="150" fill="none" stroke="url(#crescent)" stroke-width="10"
+          stroke-linecap="round" stroke-dasharray="180 600" transform="rotate(-50 256 256)"/>
+</svg>

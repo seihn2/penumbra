@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Penumbra</title>
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+         blob: in script-src is required so the AudioWorklet PCM-capture module
+         (loaded from a Blob URL) isn't blocked — without it capture silently
+         falls back to the deprecated main-thread ScriptProcessorNode. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; worker-src 'self' blob:"
+    />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
