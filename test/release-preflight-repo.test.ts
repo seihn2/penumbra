@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { validateReleaseConfig, type ReleaseConfig } from '../src/shared/release-preflight'
+import { parseReleaseConfigSources } from '../src/shared/release-config-parser'
+import { validateReleaseConfig } from '../src/shared/release-preflight'
 
 // Guard the repo's ACTUAL packaging config against the preflight rules, so a
 // signing / notarization / entitlement regression is caught in `npx vitest`
@@ -14,41 +15,13 @@ const yml = readFileSync(resolve(root, 'electron-builder.yml'), 'utf8')
 const plist = readFileSync(resolve(root, 'build/entitlements.mac.plist'), 'utf8')
 const hook = readFileSync(resolve(root, 'scripts/after-pack-mac-sign.cjs'), 'utf8')
 
-// Top-level `key: value` scalar (not nested). Good enough for appId etc.
-function topScalar(source: string, key: string): string | undefined {
-  const m = source.match(new RegExp(`^${key}:\\s*(.+?)\\s*(?:#.*)?$`, 'm'))
-  return m ? m[1].replace(/^['"]|['"]$/g, '') : undefined
+const configSources = {
+  builderYaml: yml,
+  entitlementsPlist: plist,
+  signingHook: hook,
+  hasSigningIdentity: false
 }
-
-// A `key: value` nested under a parent block (indented). Used for mac.notarize
-// and publish.owner without a full YAML parser.
-function nestedScalar(source: string, parent: string, key: string): string | undefined {
-  const block = source.match(new RegExp(`^${parent}:\\n((?:[ \\t]+.*\\n?)*)`, 'm'))
-  if (!block) return undefined
-  const m = block[1].match(new RegExp(`^[ \\t]+${key}:\\s*(.+?)\\s*(?:#.*)?$`, 'm'))
-  return m ? m[1].replace(/^['"]|['"]$/g, '') : undefined
-}
-
-const entitlementKeys = [...plist.matchAll(/<key>([^<]+)<\/key>/g)].map((m) => m[1])
-const infoPlistKeys = (() => {
-  const block = yml.match(/^\s+extendInfo:\n((?:[ \t]+.*\n?)*)/m)
-  if (!block) return []
-  return [...block[1].matchAll(/^[ \t]+([A-Za-z]+):/gm)].map((m) => m[1])
-})()
-const resignBundleId = hook.match(/BUNDLE_ID\s*=\s*'([^']+)'/)?.[1]
-
-const repoConfig: ReleaseConfig = {
-  appId: topScalar(yml, 'appId'),
-  resignBundleId,
-  notarize: nestedScalar(yml, 'mac', 'notarize') === 'true',
-  hasSigningIdentity: false, // committed repo has no identity configured
-  hardenedRuntime: nestedScalar(yml, 'mac', 'hardenedRuntime') === 'true',
-  infoPlistKeys,
-  entitlements: entitlementKeys,
-  publishProvider: nestedScalar(yml, 'publish', 'provider'),
-  publishOwner: nestedScalar(yml, 'publish', 'owner'),
-  publishRepo: nestedScalar(yml, 'publish', 'repo')
-}
+const repoConfig = parseReleaseConfigSources(configSources)
 
 describe('release preflight over the real repo config', () => {
   it('parses the expected values from electron-builder.yml', () => {
@@ -65,6 +38,17 @@ describe('release preflight over the real repo config', () => {
   it('declares the audio Info.plist keys required for packaged capture', () => {
     expect(repoConfig.infoPlistKeys).toContain('NSAudioCaptureUsageDescription')
     expect(repoConfig.infoPlistKeys).toContain('NSMicrophoneUsageDescription')
+  })
+
+  it('parses the same config after a Windows CRLF checkout', () => {
+    const windowsConfig = parseReleaseConfigSources({
+      ...configSources,
+      builderYaml: yml.replace(/\n/g, '\r\n'),
+      entitlementsPlist: plist.replace(/\n/g, '\r\n'),
+      signingHook: hook.replace(/\n/g, '\r\n')
+    })
+
+    expect(windowsConfig).toEqual(repoConfig)
   })
 
   it('has no error-severity preflight issues (the app builds & runs)', () => {

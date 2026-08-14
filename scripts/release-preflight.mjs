@@ -15,6 +15,7 @@ import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { validateReleaseConfig } from '../src/shared/release-preflight.ts'
+import { parseReleaseConfigSources } from '../src/shared/release-config-parser.ts'
 import { findRunningPackagedAppProcesses } from '../src/shared/running-packaged-app.ts'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -31,41 +32,12 @@ if (process.platform === 'darwin') {
   }
 }
 
-const yml = readFileSync(resolve(root, 'electron-builder.yml'), 'utf8')
-const plist = readFileSync(resolve(root, 'build/entitlements.mac.plist'), 'utf8')
-const hook = readFileSync(resolve(root, 'scripts/after-pack-mac-sign.cjs'), 'utf8')
-
-// Light YAML/plist parsing (no dep): we only need a few scalar fields, matching
-// the approach in test/release-preflight-repo.test.ts.
-function topScalar(source, key) {
-  const m = source.match(new RegExp(`^${key}:\\s*(.+?)\\s*(?:#.*)?$`, 'm'))
-  return m ? m[1].replace(/^['"]|['"]$/g, '') : undefined
-}
-function nestedScalar(source, parent, key) {
-  const block = source.match(new RegExp(`^${parent}:\\n((?:[ \\t]+.*\\n?)*)`, 'm'))
-  if (!block) return undefined
-  const m = block[1].match(new RegExp(`^[ \\t]+${key}:\\s*(.+?)\\s*(?:#.*)?$`, 'm'))
-  return m ? m[1].replace(/^['"]|['"]$/g, '') : undefined
-}
-
-const entitlements = [...plist.matchAll(/<key>([^<]+)<\/key>/g)].map((m) => m[1])
-const infoBlock = yml.match(/^\s+extendInfo:\n((?:[ \t]+.*\n?)*)/m)
-const infoPlistKeys = infoBlock
-  ? [...infoBlock[1].matchAll(/^[ \t]+([A-Za-z]+):/gm)].map((m) => m[1])
-  : []
-
-const config = {
-  appId: topScalar(yml, 'appId'),
-  resignBundleId: hook.match(/BUNDLE_ID\s*=\s*'([^']+)'/)?.[1],
-  notarize: nestedScalar(yml, 'mac', 'notarize') === 'true',
-  hasSigningIdentity: Boolean(process.env.CSC_LINK || process.env.CSC_NAME),
-  hardenedRuntime: nestedScalar(yml, 'mac', 'hardenedRuntime') === 'true',
-  infoPlistKeys,
-  entitlements,
-  publishProvider: nestedScalar(yml, 'publish', 'provider'),
-  publishOwner: nestedScalar(yml, 'publish', 'owner'),
-  publishRepo: nestedScalar(yml, 'publish', 'repo')
-}
+const config = parseReleaseConfigSources({
+  builderYaml: readFileSync(resolve(root, 'electron-builder.yml'), 'utf8'),
+  entitlementsPlist: readFileSync(resolve(root, 'build/entitlements.mac.plist'), 'utf8'),
+  signingHook: readFileSync(resolve(root, 'scripts/after-pack-mac-sign.cjs'), 'utf8'),
+  hasSigningIdentity: Boolean(process.env.CSC_LINK || process.env.CSC_NAME)
+})
 
 const issues = validateReleaseConfig(config)
 const errors = issues.filter((i) => i.severity === 'error')

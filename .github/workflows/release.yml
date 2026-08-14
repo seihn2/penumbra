@@ -49,11 +49,13 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
+          name: Penumbra ${{ github.ref_name }}
           draft: true
+          generate_release_notes: true
           files: |
             dist/**/penumbra-*.dmg
             dist/**/penumbra-*.exe
-            dist/**/latest-mac.yml
-            dist/**/latest-windows.yml
+            dist/**/latest*.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
