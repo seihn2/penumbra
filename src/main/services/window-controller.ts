@@ -1,6 +1,7 @@
 import { app, screen } from 'electron'
 import type { BrowserWindow, Rectangle } from 'electron'
 import { applyContentProtection } from '../main-window'
+import { applyOverlayWindowBehavior, showOverlayWindow } from './window-overlay'
 import { state } from '../state'
 import {
   clampToWorkArea,
@@ -11,7 +12,6 @@ import {
 
 const FRONT_REASSERT_DURATION = 8000
 const FRONT_REASSERT_INTERVAL = 100
-const FRONT_RELATIVE_LEVEL = 100
 const BACKGROUND_GUARD_INTERVAL = 2000
 const MOVE_STEP = 200
 
@@ -22,7 +22,7 @@ let softHiddenBounds: Rectangle | null = null
 
 function applyTopMost(win: BrowserWindow, aggressive = true) {
   if (!win || win.isDestroyed()) return
-  win.setAlwaysOnTop(true, 'screen-saver', FRONT_RELATIVE_LEVEL)
+  applyOverlayWindowBehavior(win)
   if (aggressive) win.moveTop()
 }
 
@@ -98,11 +98,7 @@ function restoreSoftHiddenWindow(window: BrowserWindow) {
 function showMainWindow(window: BrowserWindow) {
   if (window.isDestroyed()) return
 
-  if (process.platform === 'darwin' || process.platform === 'win32') {
-    window.showInactive()
-  } else {
-    window.show()
-  }
+  showOverlayWindow(window)
   applyContentProtection(window, true)
   keepWindowInFront(window)
 }

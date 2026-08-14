@@ -26,6 +26,7 @@ import {
   snapWindowTo
 } from './services/window-controller'
 import { StreamManager } from './services/stream-manager'
+import { showOverlayWindow } from './services/window-overlay'
 import { AiConversationService } from './services/ai-conversation-service'
 import { recordEgress } from './outbound-log'
 import {
@@ -86,8 +87,7 @@ const callbacks: Record<string, () => void> = {
     mainWindow.setOpacity(1)
     setMousePassthrough(false)
     snapWindowTo(mainWindow, 'center')
-    mainWindow.show()
-    mainWindow.setAlwaysOnTop(true, 'screen-saver', 1)
+    showOverlayWindow(mainWindow)
     mainWindow.webContents.send('reset-window-appearance')
   },
 

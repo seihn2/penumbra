@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { app, dialog, ipcMain, safeStorage, screen } from 'electron'
+import { dialog, ipcMain, safeStorage, screen } from 'electron'
 import {
   parseAnswerServiceCredentialRef,
   parseAnswerServiceKeyWrite,
@@ -15,6 +15,7 @@ import { createActiveConfig, startDraft, editDraft, validateDraft } from '../sha
 import { asrLog } from './asr/asr-log'
 import { DEFAULT_ASR_MODEL } from '../shared/asr-models'
 import { applyTrafficLightMode } from './services/window-appearance'
+import { setOverlayDockVisibility } from './services/window-overlay'
 import { DEFAULT_ANSWER_API_PROTOCOL } from '../shared/answer-api-protocol'
 import { DEFAULT_TRAFFIC_LIGHT_MODE } from '../shared/traffic-light-mode'
 
@@ -180,12 +181,7 @@ function pickSecretSettings(value: Partial<AppSettings>): Partial<SecretSettings
 
 /** Show/hide the macOS dock icon. No-op on other platforms. */
 export function applyDockVisibility(hidden: boolean): void {
-  if (process.platform !== 'darwin') return
-  if (hidden) {
-    app.dock?.hide()
-  } else {
-    app.dock?.show()
-  }
+  setOverlayDockVisibility(hidden, global.mainWindow)
 }
 
 // Enumerate attached displays so the settings UI can offer a screenshot-target

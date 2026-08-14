@@ -1,9 +1,15 @@
 import 'dotenv/config'
 import { app, BrowserWindow, desktopCapturer, globalShortcut, session, nativeImage } from 'electron'
+import {
+  initializeOverlayApplication,
+  reassertOverlayWindowBehavior,
+  showOverlayWindow
+} from './services/window-overlay'
 
 // Set the app name as early as possible so the Dock tooltip and menu bar show
 // "Penumbra" instead of the default "Electron" in dev.
 app.setName('Penumbra')
+initializeOverlayApplication()
 
 type AbortLikeError = {
   name?: string
@@ -109,9 +115,13 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
-    } else if (global.mainWindow && !global.mainWindow.isVisible()) {
-      global.mainWindow.show()
+    } else if (global.mainWindow) {
+      showOverlayWindow(global.mainWindow)
     }
+  })
+
+  app.on('did-become-active', () => {
+    if (global.mainWindow?.isVisible()) reassertOverlayWindowBehavior(global.mainWindow)
   })
 })
 

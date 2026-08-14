@@ -4,6 +4,11 @@ import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { settings, applyDockVisibility } from './settings'
 import { applyTrafficLightMode } from './services/window-appearance'
+import {
+  applyOverlayWindowBehavior,
+  reassertOverlayWindowBehavior,
+  showOverlayWindow
+} from './services/window-overlay'
 
 function clampOpacity(value: number): number {
   if (Number.isNaN(value)) return 1
@@ -68,6 +73,7 @@ export function createWindow(): void {
 
   mainWindow.setMenuBarVisibility(false)
   applyTrafficLightMode(mainWindow, settings.trafficLightMode)
+  applyOverlayWindowBehavior(mainWindow)
 
   mainWindow.on('ready-to-show', () => {
     // Guarantee a visible, on-screen, opaque window at startup so a previous
@@ -75,26 +81,22 @@ export function createWindow(): void {
     // renderer re-applies the user's configured opacity right after.
     mainWindow.setOpacity(1)
     mainWindow.center()
-    mainWindow.show()
-    mainWindow.setAlwaysOnTop(true, 'screen-saver', 1)
-    mainWindow.setVisibleOnAllWorkspaces(true, {
-      visibleOnFullScreen: true,
-      skipTransformProcessType: true
-    })
     applyDockVisibility(settings.hideDockIcon)
+    showOverlayWindow(mainWindow)
     applyContentProtection(mainWindow)
 
     // Reclaim top position when other apps steal it
     mainWindow.on('always-on-top-changed', (_event, isAlwaysOnTop) => {
       if (!isAlwaysOnTop && mainWindow.isVisible() && !mainWindow.isDestroyed()) {
         // Only re-set the flag; avoid moveTop() to not disturb other window focus
-        mainWindow.setAlwaysOnTop(true, 'screen-saver', 1)
+        applyOverlayWindowBehavior(mainWindow)
       }
     })
   })
 
   mainWindow.on('show', () => {
     applyContentProtection(mainWindow)
+    reassertOverlayWindowBehavior(mainWindow)
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
