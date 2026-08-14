@@ -1,7 +1,7 @@
 {
   "name": "penumbra",
-  "version": "1.9.1",
-  "description": "Penumbra — 面试实时解题与应答助手",
+  "version": "1.9.2",
+  "description": "A privacy-aware desktop AI workspace for screenshot analysis, real-time transcription, and interview practice.",
   "main": "./out/main/index.js",
   "scripts": {
     "format": "prettier --write .",
@@ -26,11 +26,11 @@
     "url": "git+https://github.com/seihn2/penumbra.git"
   },
   "keywords": [
-    "解题助手",
-    "面试",
-    "助手",
-    "coding interview",
-    "LeetCode"
+    "ai assistant",
+    "interview practice",
+    "screenshot analysis",
+    "real-time transcription",
+    "electron"
   ],
   "author": "seihn2",
   "license": "CC BY-NC 4.0",

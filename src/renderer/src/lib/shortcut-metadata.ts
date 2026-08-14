@@ -44,6 +44,7 @@ export const shortcutMetadata: ShortcutMetadata[] = [
   meta('newConversation', 'Window Management', { description: true }),
   meta('focusComposer', 'Window Management', { description: true }),
   meta('toggleContentProtection', 'Window Management', { description: true }),
+  meta('toggleZeroUiMode', 'Window Management', { description: true }),
   meta('toggleDockIcon', 'Window Management', { description: true, macOnly: true }),
   meta('increaseOverallOpacity', 'Window Management', { description: true }),
   meta('decreaseOverallOpacity', 'Window Management', { description: true }),

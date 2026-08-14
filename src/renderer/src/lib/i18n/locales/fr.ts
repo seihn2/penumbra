@@ -582,6 +582,18 @@ const fr: TranslationSchema = {
       opaque: 'Opaque',
       uiLanguage: "Langue de l'Interface",
       uiLanguageDesc: "Changez la langue d'affichage de l'application.",
+      zeroUiMode: 'Mode texte brut 0 UI',
+      zeroUiModeDesc:
+        'Masque les contrôles et captures ; affiche uniquement les réponses IA en texte préformaté. Le raccourci global permet de basculer à tout moment.',
+      zeroUiEnabled: 'Mode texte brut 0 UI activé',
+      zeroUiDisabled: 'Mode texte brut 0 UI désactivé',
+      zeroUiBackdrop: 'Fond sous le mode 0 UI',
+      zeroUiBackdropDesc:
+        'Adaptez le texte au contenu réel sous la fenêtre pour un dispositif à deux caméras lisible mais discret.',
+      zeroUiBackdrops: {
+        dark: 'Contenu sombre dessous (texte clair)',
+        light: 'Contenu clair dessous (texte sombre)'
+      },
       uiFontSize: "Taille du Texte de l'Interface",
       uiFontSizeDesc:
         'Ajustez la navigation, les réglages et le texte général ; les réponses restent séparées.',
@@ -897,6 +909,10 @@ const fr: TranslationSchema = {
     toggleContentProtection: {
       label: "Basculer la furtivité de partage d'écran",
       desc: "Une touche pour activer/désactiver l'invisibilité lors de l'enregistrement/partage"
+    },
+    toggleZeroUiMode: {
+      label: 'Basculer le mode texte brut 0 UI',
+      desc: "Masque ou restaure toute l'interface et n'affiche que les réponses IA préformatées"
     },
     toggleDockIcon: {
       label: "Masquer/Afficher l'icône du Dock",

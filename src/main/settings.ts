@@ -128,8 +128,11 @@ ipcMain.handle('updateAppSettings', (_event, value) => {
   if ('hideDockIcon' in _settings) {
     applyDockVisibility(settings.hideDockIcon)
   }
-  if ('trafficLightMode' in _settings && global.mainWindow) {
-    applyTrafficLightMode(global.mainWindow, settings.trafficLightMode)
+  if (('trafficLightMode' in _settings || 'zeroUiMode' in _settings) && global.mainWindow) {
+    applyTrafficLightMode(
+      global.mainWindow,
+      settings.zeroUiMode ? 'hidden' : settings.trafficLightMode
+    )
   }
   if ('contentProtectionEnabled' in _settings) {
     global.mainWindow?.setContentProtection(settings.contentProtectionEnabled !== false)
@@ -300,6 +303,10 @@ export const settings = {
   translationTargetLanguage: 'zh',
   hideDockIcon: false,
   trafficLightMode: DEFAULT_TRAFFIC_LIGHT_MODE,
+  // Zero UI strips the overlay down to assistant output rendered as plain
+  // preformatted text. It is mirrored in main so the global shortcut can
+  // toggle it even while the renderer exposes no controls.
+  zeroUiMode: false,
   // Local sensitive-info firewall: when on (default), text is scrubbed of
   // secrets/PII (and the user's never-send words) before being sent to the AI.
   redactBeforeSend: true,

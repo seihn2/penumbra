@@ -28,6 +28,11 @@ import {
   sanitizeTrafficLightMode,
   type TrafficLightMode
 } from '../../../../shared/traffic-light-mode'
+import {
+  DEFAULT_ZERO_UI_BACKDROP,
+  sanitizeZeroUiBackdrop,
+  type ZeroUiBackdrop
+} from '../../../../shared/zero-ui-theme'
 
 export type SpeakerDiarizationMode = 'heuristic' | 'provider'
 
@@ -84,6 +89,8 @@ export interface Settings {
 
   hideDockIcon: boolean
   trafficLightMode: TrafficLightMode
+  zeroUiMode: boolean
+  zeroUiBackdrop: ZeroUiBackdrop
   contentProtectionEnabled: boolean
   reduceMotion: MotionPreference
 }
@@ -162,6 +169,8 @@ const defaultSettings: Settings = {
 
   hideDockIcon: false,
   trafficLightMode: DEFAULT_TRAFFIC_LIGHT_MODE,
+  zeroUiMode: false,
+  zeroUiBackdrop: DEFAULT_ZERO_UI_BACKDROP,
   contentProtectionEnabled: true,
   reduceMotion: 'system'
 }
@@ -206,6 +215,8 @@ function toPersistedSettings(state: SettingsStore): PersistedSettings {
     translationTargetLanguage: state.translationTargetLanguage,
     hideDockIcon: state.hideDockIcon,
     trafficLightMode: state.trafficLightMode,
+    zeroUiMode: state.zeroUiMode,
+    zeroUiBackdrop: state.zeroUiBackdrop,
     contentProtectionEnabled: state.contentProtectionEnabled,
     reduceMotion: state.reduceMotion
   }
@@ -295,7 +306,7 @@ export const useSettingsStore = create<SettingsStore>()(
       name: 'interview-coder-settings',
       storage: createJSONStorage(() => localStorage),
       partialize: toPersistedSettings,
-      version: 20,
+      version: 21,
       migrate: migratePersistedSettings
     }
   )
@@ -388,6 +399,7 @@ export function sanitizePersistedSettings(persistedState: unknown): Settings {
     sanitized.answerFontSize = clampFontSize('answer', sanitized.answerFontSize)
     sanitized.codeBlockTheme = sanitizeCodeBlockTheme(sanitized.codeBlockTheme)
     sanitized.trafficLightMode = sanitizeTrafficLightMode(sanitized.trafficLightMode)
+    sanitized.zeroUiBackdrop = sanitizeZeroUiBackdrop(sanitized.zeroUiBackdrop)
     return sanitized
   } catch {
     return { ...defaultSettings }
@@ -474,6 +486,8 @@ export const useAppearanceSettings = () =>
       codeBlockTheme: state.codeBlockTheme,
       reduceMotion: state.reduceMotion,
       trafficLightMode: state.trafficLightMode,
+      zeroUiMode: state.zeroUiMode,
+      zeroUiBackdrop: state.zeroUiBackdrop,
       updateSetting: state.updateSetting
     }))
   )

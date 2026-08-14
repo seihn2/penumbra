@@ -14,6 +14,7 @@ import {
 } from './ai'
 import { setMousePassthrough, state, toggleMousePassthrough } from './state'
 import { applyDockVisibility, settings } from './settings'
+import { applyTrafficLightMode } from './services/window-appearance'
 import {
   getTranscriptionText,
   clearTranscriptionText,
@@ -223,6 +224,15 @@ const callbacks: Record<string, () => void> = {
     settings.contentProtectionEnabled = next
     mainWindow.setContentProtection(next)
     mainWindow.webContents.send('content-protection-changed', next)
+  },
+  toggleZeroUiMode: () => {
+    const mainWindow = global.mainWindow
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    const next = !settings.zeroUiMode
+    settings.zeroUiMode = next
+    applyTrafficLightMode(mainWindow, next ? 'hidden' : settings.trafficLightMode)
+    mainWindow.webContents.send('zero-ui-mode-changed', next)
+    showOverlayWindow(mainWindow)
   },
   toggleDockIcon: () => {
     if (process.platform !== 'darwin') return

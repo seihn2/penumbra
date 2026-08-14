@@ -1,4 +1,23 @@
-# 更新记录
+# Changelog
+
+## Penumbra 1.9.2 - 2026-08-14
+
+### 0 UI mode
+
+- Added the global `Alt+Shift+H` shortcut and a synchronized Settings toggle for entering or
+  leaving 0 UI mode.
+- 0 UI mode now bypasses the regular chat renderer and displays only compact assistant plaintext.
+- Added separate light-background and dark-background presets for camera-aware tuning.
+- Reduced the minimum window size to 200 × 120 pixels, UI text to 9 px, answer text to 8 px, and
+  screenshot thumbnails to a maximum width of 112 px.
+- Added IPC, settings migration, shortcut scope, appearance, and 0 UI regression coverage.
+
+### Documentation and metadata
+
+- Replaced the README with a detailed English project guide covering installation, configuration,
+  privacy boundaries, shortcuts, packaging, troubleshooting, and responsible use.
+- Added an English contribution guide and updated the package metadata, author attribution, and
+  project version for the 1.9.2 release.
 
 ## Penumbra 1.9.1 - 2026-08-14
 

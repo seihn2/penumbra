@@ -94,6 +94,12 @@ const api = {
   removeDockIconVisibilityChangedListener: () => {
     ipcRenderer.removeAllListeners('dock-icon-visibility-changed')
   },
+  onZeroUiModeChanged: (callback: (enabled: boolean) => void) => {
+    ipcRenderer.on('zero-ui-mode-changed', (_event, enabled: boolean) => callback(enabled))
+  },
+  removeZeroUiModeChangedListener: () => {
+    ipcRenderer.removeAllListeners('zero-ui-mode-changed')
+  },
   onFocusChatComposer: (callback: (payload: { resetConversation: boolean }) => void) => {
     ipcRenderer.on('focus-chat-composer', (_event, payload: { resetConversation: boolean }) =>
       callback(payload)

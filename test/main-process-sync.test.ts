@@ -41,6 +41,10 @@ describe('pickMainProcessSettings', () => {
     expect(pickMainProcessSettings({ trafficLightMode: 'hover' }).trafficLightMode).toBe('hover')
   })
 
+  it('forwards 0 UI mode so the global shortcut and native chrome stay in sync', () => {
+    expect(pickMainProcessSettings({ zeroUiMode: true }).zeroUiMode).toBe(true)
+  })
+
   it('skips undefined fields', () => {
     const picked = pickMainProcessSettings({ model: 'x' })
     expect('apiBaseURL' in picked).toBe(false)

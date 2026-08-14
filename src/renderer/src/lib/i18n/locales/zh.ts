@@ -543,6 +543,17 @@ const zh = {
       opaque: '不透明',
       uiLanguage: '界面语言',
       uiLanguageDesc: '切换应用界面显示的语言。',
+      zeroUiMode: '0 UI 纯文本模式',
+      zeroUiModeDesc:
+        '隐藏全部界面、截图和控件，只用代码块显示 AI 的纯文本回复。可用旁边的全局快捷键随时切换。',
+      zeroUiEnabled: '已进入 0 UI 纯文本模式',
+      zeroUiDisabled: '已退出 0 UI 纯文本模式',
+      zeroUiBackdrop: '0 UI 底层背景适配',
+      zeroUiBackdropDesc: '按悬浮窗后面的真实画面选择，确保双机位下本人可读、界面尽量不显眼。',
+      zeroUiBackdrops: {
+        dark: '底层是深色（浅字）',
+        light: '底层是浅色（深字）'
+      },
       uiFontSize: '界面字号',
       uiFontSizeDesc: '调节导航、设置和普通界面文字；答案字号可单独调。',
       codeBlockTheme: '代码块样式',
@@ -833,6 +844,10 @@ const zh = {
     toggleContentProtection: {
       label: '切换屏幕共享隐身',
       desc: '一键开关录屏/共享时的窗口隐身'
+    },
+    toggleZeroUiMode: {
+      label: '切换 0 UI 纯文本模式',
+      desc: '隐藏或恢复全部界面，仅显示 AI 的代码块式纯文本回复'
     },
     toggleDockIcon: {
       label: '隐藏/显示 Dock 图标',

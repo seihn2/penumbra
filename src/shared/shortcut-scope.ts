@@ -22,6 +22,7 @@ export const SYSTEM_SAFE_ACTIONS: readonly string[] = [
   'takeScreenshot',
   'toggleTranscription',
   'ignoreOrEnableMouse',
+  'toggleZeroUiMode',
   'toggleDockIcon',
   'newConversation',
   'focusComposer'

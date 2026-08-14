@@ -564,6 +564,18 @@ const ko: TranslationSchema = {
       opaque: '불투명',
       uiLanguage: '인터페이스 언어',
       uiLanguageDesc: '앱 인터페이스 표시 언어를 전환합니다.',
+      zeroUiMode: '0 UI 일반 텍스트 모드',
+      zeroUiModeDesc:
+        '모든 컨트롤과 스크린샷을 숨기고 AI 답변만 서식 있는 텍스트로 표시합니다. 전역 단축키로 언제든 전환할 수 있습니다.',
+      zeroUiEnabled: '0 UI 일반 텍스트 모드가 켜졌습니다',
+      zeroUiDisabled: '0 UI 일반 텍스트 모드가 꺼졌습니다',
+      zeroUiBackdrop: '0 UI 배경 맞춤',
+      zeroUiBackdropDesc:
+        '오버레이 뒤 실제 화면에 맞춰 두 대의 카메라 환경에서도 읽기 쉽고 눈에 덜 띄게 합니다.',
+      zeroUiBackdrops: {
+        dark: '뒤가 어두움 (밝은 글자)',
+        light: '뒤가 밝음 (어두운 글자)'
+      },
       uiFontSize: '인터페이스 글자 크기',
       uiFontSizeDesc: '탐색, 설정, 일반 UI 텍스트를 조절하며 답변 글자는 별도로 설정합니다.',
       codeBlockTheme: '코드 블록 스타일',
@@ -870,6 +882,10 @@ const ko: TranslationSchema = {
     toggleContentProtection: {
       label: '화면 공유 스텔스 전환',
       desc: '녹화·공유 시 창 숨김을 한 키로 켜고 끄기'
+    },
+    toggleZeroUiMode: {
+      label: '0 UI 일반 텍스트 전환',
+      desc: '전체 UI를 숨기거나 복원하고 AI 답변만 서식 있는 텍스트로 표시'
     },
     toggleDockIcon: {
       label: 'Dock 아이콘 숨기기/표시',

@@ -1,8 +1,10 @@
 import { SlidersHorizontal, Pipette, AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Slider } from '@/components/ui/slider'
+import { Switch } from '@/components/ui/switch'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { useAppearanceSettings } from '@/lib/store/settings'
+import { useShortcut } from '@/lib/store/shortcuts'
 import { cn } from '@/lib/utils'
 import { isMac } from '@/lib/utils/env'
 import { UI_LANGUAGES } from '@/lib/i18n'
@@ -12,8 +14,10 @@ import { OPACITY_MINIMUMS } from '../../../shared/opacity'
 import { FONT_SIZE_MAXIMUMS, FONT_SIZE_MINIMUMS } from '../../../shared/font-size'
 import { CODE_BLOCK_THEMES } from '../../../shared/code-block-theme'
 import { TRAFFIC_LIGHT_MODES } from '../../../shared/traffic-light-mode'
+import { ZERO_UI_BACKDROPS } from '../../../shared/zero-ui-theme'
 import { SettingRow, SettingsSection } from './components'
 import { ColorPicker } from './ColorPicker'
+import ShortcutRenderer from '@/components/ShortcutRenderer'
 
 // Curated accent presets — a calm spread across the hue wheel.
 const ACCENT_PRESETS = ['#4aa3df', '#7c5cff', '#22c08b', '#e0833b', '#e0556e', '#9aa3ad']
@@ -94,8 +98,11 @@ export function AppearanceSettingsSection() {
     codeBlockTheme,
     reduceMotion,
     trafficLightMode,
+    zeroUiMode,
+    zeroUiBackdrop,
     updateSetting
   } = useAppearanceSettings()
+  const zeroUiShortcut = useShortcut('toggleZeroUiMode')
 
   // Warn when the chosen accent is hard to read on the app's dark surface (it's
   // used as text/icon color). Low contrast → an a11y hint (P1#33).
@@ -189,6 +196,40 @@ export function AppearanceSettingsSection() {
           {MOTION_PREFERENCES.map((pref) => (
             <option key={pref} value={pref}>
               {t(`settings.appearance.motion.${pref}` as Parameters<typeof t>[0])}
+            </option>
+          ))}
+        </select>
+      </SettingRow>
+      <SettingRow
+        title={t('settings.appearance.zeroUiMode')}
+        description={t('settings.appearance.zeroUiModeDesc')}
+      >
+        <div className="flex items-center gap-3">
+          {zeroUiShortcut && <ShortcutRenderer shortcut={zeroUiShortcut.key} />}
+          <Switch
+            checked={zeroUiMode}
+            onCheckedChange={(checked) => updateSetting('zeroUiMode', checked)}
+            aria-label={t('settings.appearance.zeroUiMode')}
+          />
+        </div>
+      </SettingRow>
+      <SettingRow
+        title={t('settings.appearance.zeroUiBackdrop')}
+        description={t('settings.appearance.zeroUiBackdropDesc')}
+      >
+        <select
+          className="settings-select"
+          value={zeroUiBackdrop}
+          onChange={(event) =>
+            updateSetting(
+              'zeroUiBackdrop',
+              event.target.value as (typeof ZERO_UI_BACKDROPS)[number]
+            )
+          }
+        >
+          {ZERO_UI_BACKDROPS.map((backdrop) => (
+            <option key={backdrop} value={backdrop}>
+              {t(`settings.appearance.zeroUiBackdrops.${backdrop}` as Parameters<typeof t>[0])}
             </option>
           ))}
         </select>

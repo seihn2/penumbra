@@ -195,12 +195,61 @@ body svg {
   border-radius: var(--r-card);
   border: 1px solid var(--hairline);
   background-color: var(--surface-2);
-  max-width: 70%;
-  padding: 6px;
+  width: min(112px, 32vw);
+  padding: 4px;
 }
 .chat-shot img {
-  @apply block w-full;
+  @apply block w-full object-cover;
+  aspect-ratio: 16 / 10;
   border-radius: 6px;
+}
+
+/* 0 UI mode: no header, composer, screenshot, status or markdown chrome. The
+   assistant stream is intentionally rendered as literal preformatted text so
+   a tiny overlay stays readable without revealing a conventional app UI. */
+.zero-ui-page {
+  background: transparent;
+}
+.zero-ui-shell {
+  height: 100vh !important;
+  overflow: auto;
+  padding: 4px;
+  scrollbar-width: none;
+}
+.zero-ui-shell::-webkit-scrollbar {
+  display: none;
+}
+.zero-ui-output {
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 6px 8px;
+  background: rgba(3, 7, 12, 0.34);
+  color: #f4f7fa;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: var(--answer-font-size, 14px);
+  line-height: 1.35;
+  tab-size: 2;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.72);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+html[data-zero-ui-backdrop='light'] .zero-ui-output {
+  border-color: rgba(10, 18, 28, 0.14);
+  background: rgba(255, 255, 255, 0.48);
+  color: #111820;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.82);
+  box-shadow: 0 1px 4px rgba(20, 28, 36, 0.08);
+}
+html[data-zero-ui-backdrop='dark'] .zero-ui-output {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(3, 7, 12, 0.34);
+  color: #f4f7fa;
+}
+.zero-ui-output.is-error {
+  border-color: color-mix(in srgb, #ef6a72 55%, transparent);
+  color: #ffb4b8;
 }
 .chat-shot-tag {
   @apply absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center;

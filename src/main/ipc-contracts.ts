@@ -36,6 +36,7 @@ const appSettingsSchema = z
     translationTargetLanguage: z.enum(supportedLanguageCodes),
     hideDockIcon: z.boolean(),
     trafficLightMode: z.enum(TRAFFIC_LIGHT_MODES),
+    zeroUiMode: z.boolean(),
     contentProtectionEnabled: z.boolean()
   })
   .partial()

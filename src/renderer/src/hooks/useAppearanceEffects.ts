@@ -28,7 +28,8 @@ export function useAppearanceEffects(): void {
     iconOpacity,
     uiFontSize,
     answerFontSize,
-    codeBlockTheme
+    codeBlockTheme,
+    zeroUiBackdrop
   } = useAppearanceSettings()
 
   useEffect(() => {
@@ -81,6 +82,13 @@ export function useAppearanceEffects(): void {
       delete document.documentElement.dataset.codeTheme
     }
   }, [codeBlockTheme])
+
+  useEffect(() => {
+    document.documentElement.dataset.zeroUiBackdrop = zeroUiBackdrop
+    return () => {
+      delete document.documentElement.dataset.zeroUiBackdrop
+    }
+  }, [zeroUiBackdrop])
 
   useEffect(() => {
     window.api.onAdjustOpacity(({ target, delta }) => {

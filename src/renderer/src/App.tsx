@@ -179,6 +179,18 @@ export default function App() {
     return () => window.api.removeDockIconVisibilityChangedListener()
   }, [])
 
+  useEffect(() => {
+    window.api.onZeroUiModeChanged((enabled) => {
+      useSettingsStore.getState().updateSetting('zeroUiMode', enabled)
+      toast(
+        enabled
+          ? i18n.t('settings.appearance.zeroUiEnabled')
+          : i18n.t('settings.appearance.zeroUiDisabled')
+      )
+    })
+    return () => window.api.removeZeroUiModeChangedListener()
+  }, [])
+
   return (
     <>
       <HashRouter>
@@ -190,8 +202,8 @@ export default function App() {
         </Routes>
       </HashRouter>
 
-      <Toaster />
-      <UpdateBanner />
+      {!settingsStore.zeroUiMode && <Toaster />}
+      {!settingsStore.zeroUiMode && <UpdateBanner />}
     </>
   )
 }

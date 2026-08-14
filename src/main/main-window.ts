@@ -40,8 +40,8 @@ export function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
-    minWidth: 480,
-    minHeight: 300,
+    minWidth: 200,
+    minHeight: 120,
     // macOS: keep native traffic lights (close/min/fullscreen) via hidden title
     // bar. Other platforms stay fully frameless with custom controls.
     ...(isMac
@@ -72,7 +72,7 @@ export function createWindow(): void {
   global.mainWindow = mainWindow
 
   mainWindow.setMenuBarVisibility(false)
-  applyTrafficLightMode(mainWindow, settings.trafficLightMode)
+  applyTrafficLightMode(mainWindow, settings.zeroUiMode ? 'hidden' : settings.trafficLightMode)
   applyOverlayWindowBehavior(mainWindow)
 
   mainWindow.on('ready-to-show', () => {

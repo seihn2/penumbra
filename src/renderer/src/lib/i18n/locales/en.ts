@@ -570,6 +570,18 @@ const en: TranslationSchema = {
       opaque: 'Opaque',
       uiLanguage: 'Interface Language',
       uiLanguageDesc: 'Switch the language of the application interface.',
+      zeroUiMode: '0 UI Plain Text Mode',
+      zeroUiModeDesc:
+        'Hide every control and screenshot; show only AI replies as preformatted text. Use the global shortcut to toggle it anytime.',
+      zeroUiEnabled: '0 UI plain text mode enabled',
+      zeroUiDisabled: '0 UI plain text mode disabled',
+      zeroUiBackdrop: '0 UI Backdrop',
+      zeroUiBackdropDesc:
+        'Match the real content behind the overlay for a readable but discreet dual-camera setup.',
+      zeroUiBackdrops: {
+        dark: 'Dark content behind (light text)',
+        light: 'Light content behind (dark text)'
+      },
       uiFontSize: 'Interface Font Size',
       uiFontSizeDesc: 'Adjust navigation, settings and general UI text; answers stay independent.',
       codeBlockTheme: 'Code Block Style',
@@ -882,6 +894,10 @@ const en: TranslationSchema = {
     toggleContentProtection: {
       label: 'Toggle Screen-Share Stealth',
       desc: 'One key to turn window invisibility for recording/sharing on or off'
+    },
+    toggleZeroUiMode: {
+      label: 'Toggle 0 UI Plain Text',
+      desc: 'Hide or restore all UI and show only AI replies as preformatted text'
     },
     toggleDockIcon: {
       label: 'Hide/Show Dock Icon',

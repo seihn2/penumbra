@@ -68,6 +68,11 @@ const defaultShortcuts: Record<string, Omit<Shortcut, 'defaultKey'>> = {
     key: `${platformAlt}+Shift+S`,
     category: 'Window Management'
   },
+  toggleZeroUiMode: {
+    action: 'toggleZeroUiMode',
+    key: `${platformAlt}+Shift+H`,
+    category: 'Window Management'
+  },
   ...(isMac
     ? {
         toggleDockIcon: {
@@ -215,7 +220,7 @@ export const useShortcutsStore = create<ShortcutsStore>()(
     }),
     {
       name: 'interview-coder-shortcuts',
-      version: 11,
+      version: 12,
       migrate: (state: unknown, version: number) => {
         if (!isPersistedShortcutsState(state) || !state.shortcuts) return state as ShortcutsStore
         // Merge in any new default shortcuts that are missing

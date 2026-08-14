@@ -58,6 +58,11 @@ describe('parseAppSettingsPatch', () => {
     })
   })
 
+  it('accepts only a boolean 0 UI mode setting', () => {
+    expect(parseAppSettingsPatch({ zeroUiMode: true })).toEqual({ zeroUiMode: true })
+    expect(() => parseAppSettingsPatch({ zeroUiMode: 'yes' })).toThrow()
+  })
+
   it('rejects unknown keys', () => {
     expect(() => parseAppSettingsPatch({ rogue: true })).toThrow()
   })

@@ -52,7 +52,7 @@ describe('sanitizePersistedSettings', () => {
   it('clamps persisted font sizes to their supported ranges', () => {
     const out = sanitizePersistedSettings({ uiFontSize: 100, answerFontSize: 1 })
     expect(out.uiFontSize).toBe(20)
-    expect(out.answerFontSize).toBe(12)
+    expect(out.answerFontSize).toBe(8)
   })
 
   it('ignores unknown keys', () => {
@@ -74,6 +74,17 @@ describe('sanitizePersistedSettings', () => {
     expect(out.contentProtectionEnabled).toBe(true)
     expect(out.codeBlockTheme).toBe('soft')
     expect(out.trafficLightMode).toBe('hover')
+    expect(out.zeroUiMode).toBe(false)
+  })
+
+  it('persists only boolean 0 UI mode values', () => {
+    expect(sanitizePersistedSettings({ zeroUiMode: true }).zeroUiMode).toBe(true)
+    expect(sanitizePersistedSettings({ zeroUiMode: 'yes' }).zeroUiMode).toBe(false)
+  })
+
+  it('sanitizes the 0 UI light/dark backdrop choice', () => {
+    expect(sanitizePersistedSettings({ zeroUiBackdrop: 'light' }).zeroUiBackdrop).toBe('light')
+    expect(sanitizePersistedSettings({ zeroUiBackdrop: 'auto' }).zeroUiBackdrop).toBe('dark')
   })
 
   it('sanitizes appearance enums and migrates the legacy traffic-light switch', () => {

@@ -10,7 +10,7 @@ import {
 } from '../src/shared/shortcut-scope'
 
 describe('defaultScopeFor', () => {
-  it('returns system for exactly the seven safe actions', () => {
+  it('returns system for exactly the eight safe actions', () => {
     expect(defaultScopeFor('hideOrShowMainWindow')).toBe('system')
     expect(defaultScopeFor('takeScreenshot')).toBe('system')
     expect(defaultScopeFor('toggleTranscription')).toBe('system')
@@ -18,6 +18,7 @@ describe('defaultScopeFor', () => {
     expect(defaultScopeFor('toggleDockIcon')).toBe('system')
     expect(defaultScopeFor('newConversation')).toBe('system')
     expect(defaultScopeFor('focusComposer')).toBe('system')
+    expect(defaultScopeFor('toggleZeroUiMode')).toBe('system')
   })
 
   it('returns window for scrolling / copy / movement / opacity actions', () => {
@@ -30,8 +31,8 @@ describe('defaultScopeFor', () => {
     expect(defaultScopeFor('someUnknownAction')).toBe('window')
   })
 
-  it('exposes exactly seven system-safe actions', () => {
-    expect(SYSTEM_SAFE_ACTIONS.length).toBe(7)
+  it('exposes exactly eight system-safe actions', () => {
+    expect(SYSTEM_SAFE_ACTIONS.length).toBe(8)
   })
 })
 

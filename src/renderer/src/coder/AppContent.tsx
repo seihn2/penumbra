@@ -54,7 +54,7 @@ import { useTranscriptionToggle } from './hooks/useTranscriptionToggle'
 import { ChatComposer } from './ChatComposer'
 import { useModalDismiss } from './hooks/useModalDismiss'
 
-export function AppContent() {
+export function AppContent({ zeroUiMode = false }: { zeroUiMode?: boolean }) {
   const { t } = useTranslation()
   const { errorMessage, setErrorMessage } = useSolutionContent()
   const [, setRecentScreenshots] = useState<string[]>([])
@@ -100,6 +100,36 @@ export function AppContent() {
       if (lastAssistant !== null) prevAssistantText.set(m.id, lastAssistant)
       lastAssistant = m.text
     }
+  }
+
+  if (zeroUiMode) {
+    const outputs = renderedMessages.filter(
+      (message) => message.role === 'assistant' && (message.text || message.error)
+    )
+    return (
+      <main
+        id="app-content"
+        className="zero-ui-shell min-w-0 flex-1"
+        role="log"
+        aria-label={t('workbench.solutionOutput')}
+      >
+        {outputs.map((message) => (
+          <pre
+            key={message.id}
+            className={message.error ? 'zero-ui-output is-error' : 'zero-ui-output'}
+            aria-live={message.streaming ? 'polite' : undefined}
+            aria-busy={message.streaming || undefined}
+          >
+            <code>{message.text}</code>
+          </pre>
+        ))}
+        {errorMessage && outputs.length === 0 && (
+          <pre className="zero-ui-output is-error">
+            <code>{errorMessage}</code>
+          </pre>
+        )}
+      </main>
+    )
   }
 
   return (

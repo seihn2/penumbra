@@ -27,6 +27,7 @@ const mainProcessSettingKeys: (keyof Settings)[] = [
   'translationTargetLanguage',
   'hideDockIcon',
   'trafficLightMode',
+  'zeroUiMode',
   'contentProtectionEnabled'
 ]
 

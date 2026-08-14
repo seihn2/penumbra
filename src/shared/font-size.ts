@@ -6,8 +6,8 @@ export const FONT_SIZE_DEFAULTS: Record<FontSizeTarget, number> = {
 }
 
 export const FONT_SIZE_MINIMUMS: Record<FontSizeTarget, number> = {
-  ui: 12,
-  answer: 12
+  ui: 9,
+  answer: 8
 }
 
 export const FONT_SIZE_MAXIMUMS: Record<FontSizeTarget, number> = {

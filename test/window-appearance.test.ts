@@ -90,9 +90,9 @@ describe('macOS traffic-light visibility', () => {
     }
   })
 
-  it('allows a compact 480 by 300 window', () => {
+  it('allows an ultra-compact 200 by 120 window', () => {
     const source = readFileSync(resolve(__dirname, '../src/main/main-window.ts'), 'utf8')
-    expect(source).toContain('minWidth: 480')
-    expect(source).toContain('minHeight: 300')
+    expect(source).toContain('minWidth: 200')
+    expect(source).toContain('minHeight: 120')
   })
 })

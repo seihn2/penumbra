@@ -566,6 +566,18 @@ const ja: TranslationSchema = {
       opaque: '不透明',
       uiLanguage: '表示言語',
       uiLanguageDesc: 'アプリの表示言語を切り替えます。',
+      zeroUiMode: '0 UI プレーンテキストモード',
+      zeroUiModeDesc:
+        'すべての操作 UI とスクリーンショットを隠し、AI の回答だけを整形済みテキストで表示します。グローバルショートカットでいつでも切り替えられます。',
+      zeroUiEnabled: '0 UI プレーンテキストモードを有効にしました',
+      zeroUiDisabled: '0 UI プレーンテキストモードを無効にしました',
+      zeroUiBackdrop: '0 UI 背景への適応',
+      zeroUiBackdropDesc:
+        '背後の実画面に合わせ、二台カメラ環境でも読めて目立ちにくい表示にします。',
+      zeroUiBackdrops: {
+        dark: '背後が暗い（明るい文字）',
+        light: '背後が明るい（暗い文字）'
+      },
       uiFontSize: 'UI の文字サイズ',
       uiFontSizeDesc: 'ナビゲーション、設定、通常 UI の文字を調整します。解答は個別設定です。',
       codeBlockTheme: 'コードブロックの表示',
@@ -872,6 +884,10 @@ const ja: TranslationSchema = {
     toggleContentProtection: {
       label: '画面共有ステルスの切替',
       desc: '録画・共有時のウィンドウ不可視をワンキーで切替'
+    },
+    toggleZeroUiMode: {
+      label: '0 UI プレーンテキスト切替',
+      desc: 'すべての UI を隠す／戻す。AI の回答だけを整形済みテキストで表示'
     },
     toggleDockIcon: {
       label: 'Dock アイコンの表示切替',
