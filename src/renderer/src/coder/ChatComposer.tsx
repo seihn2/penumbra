@@ -1,10 +1,13 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SendHorizontal, Mic, Square } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useChatStore } from '@/lib/store/chat'
 import { useSolutionStore } from '@/lib/store/solution'
 import { useTranscriptionStore } from '@/lib/store/transcription'
 import { useSettingValue } from '@/lib/store/settings'
+import { useComposerFocusRequest } from '@/lib/store/composer-focus'
+import { useShortcut } from '@/lib/store/shortcuts'
+import { getShortcutAcceleratorDisplay } from '@/lib/utils/keyboard'
 import { useTranscriptionToggle } from './hooks/useTranscriptionToggle'
 
 /** Composer for the chat flow. With no active conversation it starts a new
@@ -29,6 +32,23 @@ export function ChatComposer({
   const isTranscribing = useTranscriptionStore((s) => s.isTranscribing)
   const toggleTranscription = useTranscriptionToggle()
   const dashscopeApiKey = useSettingValue('dashscopeApiKey')
+  const focusRequest = useComposerFocusRequest()
+  const focusShortcut = useShortcut('focusComposer')
+  const focusShortcutDisplay = focusShortcut ? getShortcutAcceleratorDisplay(focusShortcut.key) : ''
+
+  useEffect(() => {
+    if (focusRequest.id === 0 || disabled) return
+    if (focusRequest.clearDraft) setValue('')
+    const frame = requestAnimationFrame(() => {
+      const input = textareaRef.current
+      if (!input) return
+      if (focusRequest.clearDraft) input.style.height = 'auto'
+      input.focus({ preventScroll: false })
+      input.setSelectionRange(input.value.length, input.value.length)
+      input.scrollIntoView({ block: 'nearest' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [disabled, focusRequest])
 
   // Grow the textarea with its content (capped by the CSS max-height) and
   // collapse back to one line when cleared.
@@ -63,7 +83,7 @@ export function ChatComposer({
   }
 
   return (
-    <div className="chat-composer-wrap">
+    <div className={`chat-composer-wrap ${hasConversation ? 'is-conversation' : 'is-home'}`}>
       {composing && (
         <div className="ime-warning" role="alert">
           {t('followUp.imeWarning')}
@@ -74,11 +94,7 @@ export function ChatComposer({
           <button
             type="button"
             onClick={toggleTranscription}
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--r-card)] border transition-colors ${
-              isTranscribing
-                ? 'border-red-500/40 bg-red-500/15 text-red-400 hover:bg-red-500/25'
-                : 'border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent)] hover:bg-[var(--accent-hover)]'
-            }`}
+            className={`chat-composer-mic ${isTranscribing ? 'is-live' : ''}`}
             title={isTranscribing ? t('transcription.stopBtn') : t('transcription.startBtn')}
             aria-label={isTranscribing ? t('transcription.stopBtn') : t('transcription.startBtn')}
           >
@@ -87,11 +103,17 @@ export function ChatComposer({
         )}
         <textarea
           ref={textareaRef}
+          data-chat-composer="true"
           value={value}
           rows={1}
           disabled={disabled}
           placeholder={
             hasConversation ? t('followUp.composerPlaceholder') : t('followUp.startPlaceholder')
+          }
+          title={
+            focusShortcutDisplay
+              ? `${t('shortcut.focusComposer.label')} · ${focusShortcutDisplay}`
+              : t('shortcut.focusComposer.label')
           }
           onChange={(e) => {
             setValue(e.target.value)

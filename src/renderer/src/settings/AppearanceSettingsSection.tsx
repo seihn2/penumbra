@@ -4,9 +4,14 @@ import { Slider } from '@/components/ui/slider'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { useAppearanceSettings } from '@/lib/store/settings'
 import { cn } from '@/lib/utils'
+import { isMac } from '@/lib/utils/env'
 import { UI_LANGUAGES } from '@/lib/i18n'
 import { contrastRatio, meetsAaNormal } from '../../../shared/contrast'
 import { MOTION_PREFERENCES } from '../../../shared/motion-preference'
+import { OPACITY_MINIMUMS } from '../../../shared/opacity'
+import { FONT_SIZE_MAXIMUMS, FONT_SIZE_MINIMUMS } from '../../../shared/font-size'
+import { CODE_BLOCK_THEMES } from '../../../shared/code-block-theme'
+import { TRAFFIC_LIGHT_MODES } from '../../../shared/traffic-light-mode'
 import { SettingRow, SettingsSection } from './components'
 import { ColorPicker } from './ColorPicker'
 
@@ -17,16 +22,78 @@ const ACCENT_PRESETS = ['#4aa3df', '#7c5cff', '#22c08b', '#e0833b', '#e0556e', '
 // base.css). Used to warn when a chosen accent has poor readability contrast.
 const SURFACE_1 = '#131619'
 
+function OpacitySlider({
+  label,
+  value,
+  min,
+  onChange
+}: {
+  label: string
+  value: number
+  min: number
+  onChange: (value: number) => void
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <div className="flex w-72 items-center gap-3 text-xs text-[var(--text-tertiary)]">
+      <span className="w-10 shrink-0">{t('settings.appearance.transparent')}</span>
+      <Slider
+        aria-label={label}
+        min={min}
+        max={1}
+        step={0.05}
+        value={[value]}
+        onValueChange={(nextValue) => onChange(nextValue[0])}
+      />
+      <span className="w-9 shrink-0 text-right tabular-nums">{Math.round(value * 100)}%</span>
+      <span className="w-8 shrink-0">{t('settings.appearance.opaque')}</span>
+    </div>
+  )
+}
+
+function FontSizeSlider({
+  label,
+  target,
+  value,
+  onChange
+}: {
+  label: string
+  target: 'ui' | 'answer'
+  value: number
+  onChange: (value: number) => void
+}) {
+  return (
+    <div className="flex w-72 items-center gap-3 text-xs text-[var(--text-tertiary)]">
+      <span className="text-[11px]">A</span>
+      <Slider
+        aria-label={label}
+        min={FONT_SIZE_MINIMUMS[target]}
+        max={FONT_SIZE_MAXIMUMS[target]}
+        step={1}
+        value={[value]}
+        onValueChange={(nextValue) => onChange(nextValue[0])}
+      />
+      <span className="text-base">A</span>
+      <span className="w-10 shrink-0 text-right tabular-nums">{value}px</span>
+    </div>
+  )
+}
+
 export function AppearanceSettingsSection() {
   const { t } = useTranslation()
   const {
     overallOpacity,
     opacity,
     textOpacity,
+    iconOpacity,
     uiLanguage,
+    uiFontSize,
     answerFontSize,
     accentColor,
+    codeBlockTheme,
     reduceMotion,
+    trafficLightMode,
     updateSetting
   } = useAppearanceSettings()
 
@@ -55,10 +122,12 @@ export function AppearanceSettingsSection() {
               className={cn(
                 'h-6 w-6 rounded-full border-2 transition-transform hover:scale-110',
                 accentColor.toLowerCase() === color.toLowerCase()
-                  ? 'border-[var(--text-primary)]'
+                  ? 'border-[var(--accent-border)]'
                   : 'border-transparent'
               )}
-              style={{ backgroundColor: color }}
+              style={{
+                backgroundColor: `color-mix(in srgb, ${color} calc(var(--window-opacity) * 100%), transparent)`
+              }}
             />
           ))}
           <Popover>
@@ -68,7 +137,9 @@ export function AppearanceSettingsSection() {
                 className="relative flex h-6 w-6 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[var(--hairline)]"
                 title={t('settings.appearance.accentColorCustom')}
                 aria-label={t('settings.appearance.accentColorCustom')}
-                style={{ backgroundColor: accentColor }}
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${accentColor} calc(var(--window-opacity) * 100%), transparent)`
+                }}
               >
                 <Pipette className="h-3 w-3 text-white mix-blend-difference" />
               </button>
@@ -123,80 +194,114 @@ export function AppearanceSettingsSection() {
         </select>
       </SettingRow>
       <SettingRow
+        title={t('settings.appearance.uiFontSize')}
+        description={t('settings.appearance.uiFontSizeDesc')}
+      >
+        <FontSizeSlider
+          label={t('settings.appearance.uiFontSize')}
+          target="ui"
+          value={uiFontSize}
+          onChange={(value) => updateSetting('uiFontSize', value)}
+        />
+      </SettingRow>
+      <SettingRow
         title={t('settings.appearance.answerFontSize')}
         description={t('settings.appearance.answerFontSizeDesc')}
       >
-        <div className="flex w-64 items-center gap-3 text-xs text-[var(--text-tertiary)]">
-          <span>A</span>
-          <Slider
-            min={12}
-            max={22}
-            step={1}
-            value={[answerFontSize]}
-            onValueChange={(value) => {
-              updateSetting('answerFontSize', value[0])
-              document.documentElement.style.setProperty('--answer-font-size', `${value[0]}px`)
-            }}
-          />
-          <span className="text-base">A</span>
-        </div>
+        <FontSizeSlider
+          label={t('settings.appearance.answerFontSize')}
+          target="answer"
+          value={answerFontSize}
+          onChange={(value) => updateSetting('answerFontSize', value)}
+        />
       </SettingRow>
+      <SettingRow
+        title={t('settings.appearance.codeBlockTheme')}
+        description={t('settings.appearance.codeBlockThemeDesc')}
+      >
+        <select
+          className="settings-select"
+          value={codeBlockTheme}
+          onChange={(event) =>
+            updateSetting(
+              'codeBlockTheme',
+              event.target.value as (typeof CODE_BLOCK_THEMES)[number]
+            )
+          }
+        >
+          {CODE_BLOCK_THEMES.map((theme) => (
+            <option key={theme} value={theme}>
+              {t(`settings.appearance.codeTheme.${theme}` as Parameters<typeof t>[0])}
+            </option>
+          ))}
+        </select>
+      </SettingRow>
+      {isMac && (
+        <SettingRow
+          title={t('settings.appearance.trafficLightMode')}
+          description={t('settings.appearance.trafficLightModeDesc')}
+        >
+          <select
+            className="settings-select"
+            value={trafficLightMode}
+            onChange={(event) =>
+              updateSetting(
+                'trafficLightMode',
+                event.target.value as (typeof TRAFFIC_LIGHT_MODES)[number]
+              )
+            }
+          >
+            {TRAFFIC_LIGHT_MODES.map((mode) => (
+              <option key={mode} value={mode}>
+                {t(`settings.appearance.trafficLights.${mode}` as Parameters<typeof t>[0])}
+              </option>
+            ))}
+          </select>
+        </SettingRow>
+      )}
       <SettingRow
         title={t('settings.appearance.overallOpacity')}
         description={t('settings.appearance.overallOpacityDesc')}
       >
-        <div className="flex w-64 items-center gap-3 text-xs text-[var(--text-tertiary)]">
-          <span>{t('settings.appearance.transparent')}</span>
-          <Slider
-            min={0.2}
-            max={1}
-            step={0.05}
-            value={[overallOpacity]}
-            onValueChange={(value) => {
-              updateSetting('overallOpacity', value[0])
-              window.api.setWindowOpacity(value[0])
-            }}
-          />
-          <span>{t('settings.appearance.opaque')}</span>
-        </div>
+        <OpacitySlider
+          label={t('settings.appearance.overallOpacity')}
+          min={OPACITY_MINIMUMS.overall}
+          value={overallOpacity}
+          onChange={(value) => updateSetting('overallOpacity', value)}
+        />
       </SettingRow>
       <SettingRow
         title={t('settings.appearance.windowOpacity')}
         description={t('settings.appearance.windowOpacityDesc')}
       >
-        <div className="flex w-64 items-center gap-3 text-xs text-[var(--text-tertiary)]">
-          <span>{t('settings.appearance.transparent')}</span>
-          <Slider
-            min={0}
-            max={1}
-            step={0.05}
-            value={[opacity]}
-            onValueChange={(value) => {
-              updateSetting('opacity', value[0])
-              document.documentElement.style.setProperty('--window-opacity', value[0].toString())
-            }}
-          />
-          <span>{t('settings.appearance.opaque')}</span>
-        </div>
+        <OpacitySlider
+          label={t('settings.appearance.windowOpacity')}
+          min={OPACITY_MINIMUMS.window}
+          value={opacity}
+          onChange={(value) => updateSetting('opacity', value)}
+        />
       </SettingRow>
       <SettingRow
         title={t('settings.appearance.textOpacity')}
         description={t('settings.appearance.textOpacityDesc')}
       >
-        <div className="flex w-64 items-center gap-3 text-xs text-[var(--text-tertiary)]">
-          <span>{t('settings.appearance.transparent')}</span>
-          <Slider
-            min={0.2}
-            max={1}
-            step={0.05}
-            value={[textOpacity]}
-            onValueChange={(value) => {
-              updateSetting('textOpacity', value[0])
-              document.documentElement.style.setProperty('--content-opacity', value[0].toString())
-            }}
-          />
-          <span>{t('settings.appearance.opaque')}</span>
-        </div>
+        <OpacitySlider
+          label={t('settings.appearance.textOpacity')}
+          min={OPACITY_MINIMUMS.text}
+          value={textOpacity}
+          onChange={(value) => updateSetting('textOpacity', value)}
+        />
+      </SettingRow>
+      <SettingRow
+        title={t('settings.appearance.iconOpacity')}
+        description={t('settings.appearance.iconOpacityDesc')}
+      >
+        <OpacitySlider
+          label={t('settings.appearance.iconOpacity')}
+          min={OPACITY_MINIMUMS.icon}
+          value={iconOpacity}
+          onChange={(value) => updateSetting('iconOpacity', value)}
+        />
       </SettingRow>
     </SettingsSection>
   )

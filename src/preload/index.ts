@@ -9,6 +9,23 @@ import type { DebriefReport } from '../shared/debrief-report'
 import type { DualAudioState } from '../shared/audio-source-machine'
 import { parseClaims, type Claim } from '../shared/answer-provenance'
 import type { SoakReport } from '../shared/soak-health'
+import type { OpacityTarget } from '../shared/opacity'
+import type { SecretState } from '../shared/secret-lifecycle'
+import type { AnswerServiceProfileActivation } from '../shared/answer-service-profile'
+import type {
+  InterviewAssistTag,
+  InterviewQuestionSnapshot
+} from '../shared/interview-question-detection'
+import type {
+  InterviewAnswerPolicy,
+  ProjectKnowledgeActionResult,
+  ProjectKnowledgeOverview
+} from '../shared/project-knowledge'
+import type {
+  ExternalKnowledgeRole,
+  ExternalKnowledgeSourceInput,
+  ExternalKnowledgeTestActionResult
+} from '../shared/external-knowledge'
 
 type TranslationPayload = {
   sourceText: string
@@ -24,19 +41,34 @@ const api = {
   // Update app settings
   updateAppSettings: (settings: Partial<AppSettings>) =>
     ipcRenderer.invoke('updateAppSettings', settings),
+  activateAnswerServiceProfile: (profile: AnswerServiceProfileActivation) =>
+    ipcRenderer.invoke('activate-answer-service-profile', profile) as Promise<{
+      keyStatus: SecretState
+    }>,
+  getAnswerServiceKeyStatus: (credentialRef: string) =>
+    ipcRenderer.invoke('get-answer-service-key-status', credentialRef) as Promise<SecretState>,
+  saveAnswerServiceKey: (credentialRef: string, key: string) =>
+    ipcRenderer.invoke('save-answer-service-key', { credentialRef, key }) as Promise<SecretState>,
+  deleteAnswerServiceKey: (credentialRef: string) =>
+    ipcRenderer.invoke('delete-answer-service-key', credentialRef) as Promise<SecretState>,
 
   // Update app state
-  updateAppState: (state: Partial<AppState>) => ipcRenderer.invoke('updateAppState', state),
+  updateAppState: (state: Partial<AppState>) =>
+    ipcRenderer.invoke('updateAppState', state) as Promise<AppState>,
   // Set native window opacity (whole window)
   setWindowOpacity: (value: number) => ipcRenderer.invoke('setWindowOpacity', value),
   // Listen for opacity adjustment from global shortcuts
-  onAdjustOpacity: (
-    callback: (payload: { target: 'overall' | 'window' | 'text'; delta: number }) => void
-  ) => {
+  onAdjustOpacity: (callback: (payload: { target: OpacityTarget; delta: number }) => void) => {
     ipcRenderer.on('adjust-opacity', (_event, payload) => callback(payload))
   },
   removeAdjustOpacityListener: () => {
     ipcRenderer.removeAllListeners('adjust-opacity')
+  },
+  onResetWindowAppearance: (callback: () => void) => {
+    ipcRenderer.on('reset-window-appearance', callback)
+  },
+  removeResetWindowAppearanceListener: () => {
+    ipcRenderer.removeAllListeners('reset-window-appearance')
   },
   // Listen for app state
   onSyncAppState: (callback: (state: AppState) => void) => {
@@ -55,6 +87,20 @@ const api = {
   },
   removeContentProtectionChangedListener: () => {
     ipcRenderer.removeAllListeners('content-protection-changed')
+  },
+  onDockIconVisibilityChanged: (callback: (hidden: boolean) => void) => {
+    ipcRenderer.on('dock-icon-visibility-changed', (_event, hidden: boolean) => callback(hidden))
+  },
+  removeDockIconVisibilityChangedListener: () => {
+    ipcRenderer.removeAllListeners('dock-icon-visibility-changed')
+  },
+  onFocusChatComposer: (callback: (payload: { resetConversation: boolean }) => void) => {
+    ipcRenderer.on('focus-chat-composer', (_event, payload: { resetConversation: boolean }) =>
+      callback(payload)
+    )
+  },
+  removeFocusChatComposerListener: () => {
+    ipcRenderer.removeAllListeners('focus-chat-composer')
   },
 
   // In-app (content-protected) auto-update UI — no native dialogs, which would
@@ -353,6 +399,68 @@ const api = {
   selectAndReadTextFile: () =>
     ipcRenderer.invoke('selectAndReadTextFile') as Promise<string | null>,
 
+  listProjectKnowledge: () =>
+    ipcRenderer.invoke('project-knowledge-list') as Promise<ProjectKnowledgeOverview>,
+  importProjectKnowledge: () =>
+    ipcRenderer.invoke('project-knowledge-import') as Promise<ProjectKnowledgeActionResult | null>,
+  reindexProjectKnowledge: (projectId: string) =>
+    ipcRenderer.invoke(
+      'project-knowledge-reindex',
+      projectId
+    ) as Promise<ProjectKnowledgeActionResult>,
+  removeProjectKnowledge: (projectId: string) =>
+    ipcRenderer.invoke(
+      'project-knowledge-remove',
+      projectId
+    ) as Promise<ProjectKnowledgeActionResult>,
+  importProjectKnowledgeDocument: (role: ExternalKnowledgeRole) =>
+    ipcRenderer.invoke(
+      'project-knowledge-document-import',
+      role
+    ) as Promise<ProjectKnowledgeActionResult | null>,
+  reindexProjectKnowledgeDocument: (documentId: string) =>
+    ipcRenderer.invoke(
+      'project-knowledge-document-reindex',
+      documentId
+    ) as Promise<ProjectKnowledgeActionResult>,
+  removeProjectKnowledgeDocument: (documentId: string) =>
+    ipcRenderer.invoke(
+      'project-knowledge-document-remove',
+      documentId
+    ) as Promise<ProjectKnowledgeActionResult>,
+  saveInterviewAnswerPolicy: (input: { id?: string; question: string; answer: string }) =>
+    ipcRenderer.invoke('interview-answer-policy-save', input) as Promise<InterviewAnswerPolicy>,
+  findInterviewAnswerPolicy: (question: string) =>
+    ipcRenderer.invoke(
+      'interview-answer-policy-match',
+      question
+    ) as Promise<InterviewAnswerPolicy | null>,
+  deleteInterviewAnswerPolicy: (policyId: string) =>
+    ipcRenderer.invoke(
+      'interview-answer-policy-delete',
+      policyId
+    ) as Promise<ProjectKnowledgeActionResult>,
+  saveExternalKnowledgeSource: (input: { source: ExternalKnowledgeSourceInput; apiKey?: string }) =>
+    ipcRenderer.invoke(
+      'external-knowledge-source-save',
+      input
+    ) as Promise<ProjectKnowledgeActionResult>,
+  setExternalKnowledgeSourceEnabled: (sourceId: string, enabled: boolean) =>
+    ipcRenderer.invoke('external-knowledge-source-toggle', {
+      sourceId,
+      enabled
+    }) as Promise<ProjectKnowledgeActionResult>,
+  deleteExternalKnowledgeSource: (sourceId: string) =>
+    ipcRenderer.invoke(
+      'external-knowledge-source-delete',
+      sourceId
+    ) as Promise<ProjectKnowledgeActionResult>,
+  testExternalKnowledgeSource: (sourceId: string) =>
+    ipcRenderer.invoke(
+      'external-knowledge-source-test',
+      sourceId
+    ) as Promise<ExternalKnowledgeTestActionResult>,
+
   // Export the current conversation as a markdown file
   exportConversationMarkdown: (markdown: string, kind?: 'conversation' | 'interview') =>
     ipcRenderer.invoke('exportConversationMarkdown', markdown, kind) as Promise<boolean>,
@@ -444,19 +552,18 @@ const api = {
   },
   // Real-time AI assist + topic summary
   requestInterviewAssist: () => ipcRenderer.invoke('request-interview-assist'),
-  onInterviewAssistLoading: (
-    callback: (payload: { question: string; timestamp: number }) => void
-  ) => {
+  onInterviewQuestionDetected: (callback: (payload: InterviewQuestionSnapshot) => void) => {
+    ipcRenderer.on('interview-question-detected', (_event, payload) => callback(payload))
+  },
+  onInterviewAssistLoading: (callback: (payload: InterviewAssistTag) => void) => {
     ipcRenderer.on('interview-assist-loading', (_event, payload) => callback(payload))
   },
   onInterviewAssistChunk: (
-    callback: (payload: { question: string; points: string; timestamp: number }) => void
+    callback: (payload: InterviewAssistTag & { points: string }) => void
   ) => {
     ipcRenderer.on('interview-assist-chunk', (_event, payload) => callback(payload))
   },
-  onInterviewAssist: (
-    callback: (payload: { question: string; points: string; timestamp: number }) => void
-  ) => {
+  onInterviewAssist: (callback: (payload: InterviewAssistTag & { points: string }) => void) => {
     ipcRenderer.on('interview-assist', (_event, payload) => callback(payload))
   },
   onInterviewAssistError: (callback: () => void) => {
@@ -474,6 +581,7 @@ const api = {
     ipcRenderer.on('memory-candidates', (_event, payload) => callback(payload))
   },
   removeInterviewAssistListeners: () => {
+    ipcRenderer.removeAllListeners('interview-question-detected')
     ipcRenderer.removeAllListeners('interview-assist-loading')
     ipcRenderer.removeAllListeners('interview-assist-chunk')
     ipcRenderer.removeAllListeners('interview-assist')

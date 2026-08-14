@@ -11,11 +11,26 @@
 // Run directly: node scripts/release-preflight.mjs
 
 import { readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { validateReleaseConfig } from '../src/shared/release-preflight.ts'
+import { findRunningPackagedAppProcesses } from '../src/shared/running-packaged-app.ts'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+
+if (process.platform === 'darwin') {
+  const processTable = execFileSync('ps', ['-axo', 'pid=,command='], { encoding: 'utf8' })
+  const runningBuildTargets = findRunningPackagedAppProcesses(processTable, root)
+  if (runningBuildTargets.length > 0) {
+    for (const processInfo of runningBuildTargets) {
+      console.error(`  ✖ ERROR   packaged-app-running pid=${processInfo.pid}`)
+    }
+    console.error('退出仓库 dist 中正在运行的 Penumbra 后再打包，避免覆盖运行中的 App。')
+    process.exit(1)
+  }
+}
+
 const yml = readFileSync(resolve(root, 'electron-builder.yml'), 'utf8')
 const plist = readFileSync(resolve(root, 'build/entitlements.mac.plist'), 'utf8')
 const hook = readFileSync(resolve(root, 'scripts/after-pack-mac-sign.cjs'), 'utf8')

@@ -1,5 +1,6 @@
 export type ModelProviderId =
   | 'openai'
+  | 'anthropic'
   | 'siliconflow'
   | 'deepseek'
   | 'dashscope'
@@ -29,6 +30,11 @@ export const COMMON_MODELS_BY_PROVIDER: Record<ModelProviderId, CommonModel[]> =
     { id: 'gpt-5.6-sol', supportsVision: true, recommended: true },
     { id: 'gpt-5.6-terra', supportsVision: true },
     { id: 'gpt-5.6-luna', supportsVision: true }
+  ],
+  anthropic: [
+    { id: 'claude-sonnet-4-6', supportsVision: true, recommended: true },
+    { id: 'claude-opus-4-6', supportsVision: true },
+    { id: 'claude-haiku-4-5', supportsVision: true }
   ],
   siliconflow: [
     { id: 'Qwen/Qwen3.5-35B-A3B', supportsVision: true, recommended: true },
@@ -139,6 +145,7 @@ export function detectModelProvider(apiBaseURL: string): ModelProviderId {
   }
 
   if (hostname === 'api.openai.com') return 'openai'
+  if (hostname === 'api.anthropic.com') return 'anthropic'
   if (hostname.endsWith('siliconflow.cn')) return 'siliconflow'
   if (hostname.endsWith('deepseek.com')) return 'deepseek'
   if (hostname.endsWith('aliyuncs.com') || hostname.endsWith('qianwenai.com')) return 'dashscope'

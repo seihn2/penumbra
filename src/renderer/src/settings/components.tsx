@@ -73,7 +73,7 @@ export function SecretInput({
         variant="ghost"
         size="icon"
         onClick={() => setVisible((current) => !current)}
-        className="h-9 w-9 rounded-l-none"
+        className="h-10 w-10 rounded-l-none"
       >
         {visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
       </Button>

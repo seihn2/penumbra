@@ -1,6 +1,6 @@
-/** Common OpenAI-compatible providers, for quick-filling the API Base URL so
-   users don't have to type these by hand. Values are the base URLs the app
-   sends requests to. */
+/** Common answer-service providers, for quick-filling the API Base URL so users
+   don't have to type these by hand. Values are the base URLs the app sends
+   requests to. */
 export interface ApiBaseUrlPreset {
   label: string
   url: string
@@ -8,6 +8,7 @@ export interface ApiBaseUrlPreset {
 
 export const API_BASE_URL_PRESETS: ApiBaseUrlPreset[] = [
   { label: 'OpenAI', url: 'https://api.openai.com/v1' },
+  { label: 'Anthropic Claude', url: 'https://api.anthropic.com/v1' },
   { label: '硅基流动 SiliconFlow', url: 'https://api.siliconflow.cn/v1' },
   { label: 'DeepSeek', url: 'https://api.deepseek.com/v1' },
   { label: '阿里云百炼 DashScope', url: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },

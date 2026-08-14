@@ -11,10 +11,19 @@ import { isMac } from '@/lib/utils/env'
 import i18n from '@/lib/i18n'
 import { accentVarsFromHex } from '../../shared/accent-color'
 import { resolveReduceMotion } from '../../shared/motion-preference'
+import { useAppearanceEffects } from '@/hooks/useAppearanceEffects'
 import {
   getMainProcessHydrationPatch,
   pickMainProcessSettings
 } from '@/lib/settings/main-process-sync'
+import {
+  getActiveAnswerServiceProfile,
+  toAnswerServiceProfileActivation
+} from '../../shared/answer-service-profile'
+import { useComposerFocusStore } from '@/lib/store/composer-focus'
+import { useChatStore } from '@/lib/store/chat'
+import { useSolutionStore } from '@/lib/store/solution'
+import { useTranscriptionStore } from '@/lib/store/transcription'
 
 // macOS convention: Cmd+, toggles settings (Ctrl+, elsewhere). On the settings
 // page it navigates back; otherwise it opens settings. Scoped to the focused
@@ -39,17 +48,66 @@ function GlobalAppShortcuts() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [navigate, location.pathname])
 
+  useEffect(() => {
+    window.api.onFocusChatComposer(({ resetConversation }) => {
+      if (resetConversation) {
+        useChatStore.getState().clear()
+        useSolutionStore.getState().resetState()
+        useTranscriptionStore.getState().clearText()
+      }
+      useComposerFocusStore.getState().requestFocus(resetConversation)
+      if (location.pathname !== '/') navigate('/')
+    })
+    return () => window.api.removeFocusChatComposerListener()
+  }, [navigate, location.pathname])
+
   return null
 }
 
 export default function App() {
+  useAppearanceEffects()
   const [initialized, setInitialized] = useState(false)
   const settingsStore = useSettingsStore()
   const shortcuts = useShortcuts()
 
   useEffect(() => {
-    window.api.getAppSettings().then((settings) => {
+    window.api.getAppSettings().then(async (settings) => {
       settingsStore.syncSettings(getMainProcessHydrationPatch(settings, settingsStore))
+      let state = useSettingsStore.getState()
+      let activeProfile = getActiveAnswerServiceProfile({
+        profiles: state.answerServiceProfiles,
+        activeProfileId: state.activeAnswerServiceProfileId
+      })
+
+      // Fresh installs may receive endpoint/model defaults from env/main before
+      // any renderer profile exists. Fold those legacy values into the default
+      // profile once, then make the profile the single source of truth.
+      if (
+        !activeProfile.endpoint &&
+        !activeProfile.model &&
+        (typeof settings.apiBaseURL === 'string' || typeof settings.model === 'string')
+      ) {
+        state.updateAnswerServiceProfile(activeProfile.id, {
+          endpoint: settings.apiBaseURL ?? '',
+          model: settings.model ?? ''
+        })
+        state = useSettingsStore.getState()
+        activeProfile = getActiveAnswerServiceProfile({
+          profiles: state.answerServiceProfiles,
+          activeProfileId: state.activeAnswerServiceProfileId
+        })
+      }
+
+      try {
+        const result = await window.api.activateAnswerServiceProfile(
+          toAnswerServiceProfileActivation(activeProfile)
+        )
+        useSettingsStore
+          .getState()
+          .setAnswerServiceAvailability(result.keyStatus.phase === 'saved', true)
+      } catch {
+        useSettingsStore.getState().setAnswerServiceAvailability(false, true)
+      }
       setInitialized(true)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,12 +139,12 @@ export default function App() {
     const { accent, accentSoft, accentBorder } = accentVarsFromHex(settingsStore.accentColor)
     const root = document.documentElement.style
     root.setProperty('--accent', accent)
-    root.setProperty('--accent-soft', accentSoft)
-    root.setProperty('--accent-border', accentBorder)
+    root.setProperty('--accent-soft-base', accentSoft)
+    root.setProperty('--accent-border-base', accentBorder)
     // Also drive shadcn's primary/ring directly so switches/buttons/checkboxes
     // (which use bg-primary) re-theme instantly with the accent.
     root.setProperty('--primary', accent)
-    root.setProperty('--ring', accent)
+    root.setProperty('--ring', 'var(--accent-border)')
   }, [settingsStore.accentColor])
 
   // Reflect the resolved reduce-motion preference (OS signal + in-app override)
@@ -111,6 +169,14 @@ export default function App() {
       toast(enabled ? i18n.t('settings.privacy.stealthOn') : i18n.t('settings.privacy.stealthOff'))
     })
     return () => window.api.removeContentProtectionChangedListener()
+  }, [])
+
+  useEffect(() => {
+    window.api.onDockIconVisibilityChanged((hidden) => {
+      useSettingsStore.getState().updateSetting('hideDockIcon', hidden)
+      toast(hidden ? i18n.t('settings.privacy.dockHidden') : i18n.t('settings.privacy.dockShown'))
+    })
+    return () => window.api.removeDockIconVisibilityChangedListener()
   }, [])
 
   return (

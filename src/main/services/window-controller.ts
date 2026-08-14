@@ -1,4 +1,4 @@
-import { screen } from 'electron'
+import { app, screen } from 'electron'
 import type { BrowserWindow, Rectangle } from 'electron'
 import { applyContentProtection } from '../main-window'
 import { state } from '../state'
@@ -105,6 +105,19 @@ function showMainWindow(window: BrowserWindow) {
   }
   applyContentProtection(window, true)
   keepWindowInFront(window)
+}
+
+export function revealWindowForKeyboardInput(window: BrowserWindow): void {
+  if (!window || window.isDestroyed()) return
+
+  if (process.platform === 'win32' && isWindowSoftHidden) {
+    restoreSoftHiddenWindow(window)
+  } else {
+    showMainWindow(window)
+  }
+  if (process.platform === 'darwin') app.focus({ steal: true })
+  window.show()
+  window.focus()
 }
 
 function keepWindowInFront(window: BrowserWindow) {

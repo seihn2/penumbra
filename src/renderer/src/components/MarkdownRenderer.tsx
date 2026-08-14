@@ -3,7 +3,6 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import { Check, Copy } from 'lucide-react'
-import 'highlight.js/styles/github-dark.css'
 
 function extractText(node: ReactNode): string {
   if (typeof node === 'string') return node
@@ -49,7 +48,7 @@ function CodeBlock({ children, ...props }: { children?: ReactNode }) {
 // Ref https://github.com/tailwindlabs/tailwindcss-typography to fine-tune the markdown style
 function MarkdownRenderer({ children }: { children: string }) {
   return (
-    <div className="prose prose-sm prose-invert max-w-none prose-pre:p-0 prose-code:text-xs">
+    <div className="workbench-markdown prose prose-sm prose-invert max-w-none prose-pre:p-0 prose-code:text-xs">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}

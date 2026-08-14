@@ -3,21 +3,10 @@ import { parseAppStatePatch } from './ipc-contracts'
 
 ipcMain.handle('updateAppState', (_event, value) => {
   const _state = parseAppStatePatch(value)
-  const mouseChanged = 'ignoreMouse' in _state && _state.ignoreMouse !== state.ignoreMouse
   Object.assign(state, _state)
-  // Apply the window-level passthrough side effect when the renderer toggles it
-  // (e.g. the status-bar pointer button), mirroring the global-shortcut path.
-  if (mouseChanged) {
-    const mainWindow = global.mainWindow
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      if (state.ignoreMouse) {
-        mainWindow.setIgnoreMouseEvents(true, { forward: true })
-      } else {
-        mainWindow.setIgnoreMouseEvents(false)
-      }
-      mainWindow.webContents.send('sync-app-state', state)
-    }
-  }
+  if ('ignoreMouse' in _state) applyMousePassthrough(state.ignoreMouse)
+  syncAppState()
+  return { ...state }
 })
 
 export const state = {
@@ -26,3 +15,29 @@ export const state = {
 }
 
 export type AppState = typeof state
+
+export function setMousePassthrough(enabled: boolean): void {
+  state.ignoreMouse = enabled
+  applyMousePassthrough(enabled)
+  syncAppState()
+}
+
+export function toggleMousePassthrough(): void {
+  setMousePassthrough(!state.ignoreMouse)
+}
+
+function applyMousePassthrough(enabled: boolean): void {
+  const mainWindow = global.mainWindow
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  if (enabled) {
+    mainWindow.setIgnoreMouseEvents(true, { forward: true })
+  } else {
+    mainWindow.setIgnoreMouseEvents(false)
+  }
+}
+
+function syncAppState(): void {
+  const mainWindow = global.mainWindow
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  mainWindow.webContents.send('sync-app-state', state)
+}

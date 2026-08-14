@@ -281,8 +281,25 @@ const ja: TranslationSchema = {
     suggestions: '回答の提案',
     aiAssist: 'AI リアルタイム支援',
     askAi: 'AI に相談',
+    detectedQuestion: '検出した新しい質問',
+    detectedQuestionWaiting: 'この質問の回答ポイントを準備しています…',
     aiAssistLoading: '回答ポイントを生成中…',
     aiAssistEmpty: '面接官の質問後に自動で回答ポイントを表示します。「AI に相談」も可能です。',
+    assist: {
+      opening: '最初に言うこと',
+      path: '回答の流れ',
+      evidence: 'プロジェクトの根拠',
+      followUp: '想定される深掘り',
+      avoid: '注意点',
+      kind: {
+        project: 'プロジェクト深掘り',
+        behavioral: '行動面接',
+        'system-design': 'システム設計',
+        algorithm: 'アルゴリズム',
+        concept: '概念・原理',
+        general: '総合問題'
+      }
+    },
     topicSummary: 'トピック要約',
     exportTranscript: '面接記録をエクスポート',
     exported: '面接記録をエクスポートしました',
@@ -295,6 +312,19 @@ const ja: TranslationSchema = {
     speakerUnknown: '不明',
     copyPoints: 'ポイントをコピー',
     pointsCopied: 'コピーしました',
+    rememberAnswerPolicy: '次回もこの言い方を使う',
+    answerPolicyRemembered: 'この言い方を保存済み',
+    answerPolicySaved: '保存しました。類似の質問ではこの言い方を優先します。',
+    answerPolicySaveFailed: '保存できませんでした：{{error}}',
+    answerPolicyConflict: '類似の質問には既に回答方針があります',
+    answerPolicyPrevious: '現在保存されている方針',
+    answerPolicyKeepPrevious: '以前の方針を維持',
+    answerPolicyReplace: '現在の回答で置き換える',
+    rememberSpokenAnswer: '今話した回答を記憶',
+    spokenAnswerTitle: '実際の回答パターンを確認',
+    spokenAnswerDesc:
+      '直前の発言の文字起こしです。認識ミスを修正してから、類似質問の回答方針として保存できます。',
+    saveSpokenAnswer: '自分の回答を保存',
     prevPoint: '前へ',
     nextPoint: '次へ',
     pointIndex: '{{current}}/{{total}} 件目',
@@ -379,11 +409,36 @@ const ja: TranslationSchema = {
     model: {
       title: 'モデルサービス',
       desc: 'OpenAI 互換のモデルサービスを設定し、解答・追加質問・翻訳に使用します。',
+      profile: 'サービスプロファイル',
+      profileDesc: 'エンドポイント、モデル、モデル一覧、暗号化キーをプロファイルごとに分離します。',
+      profileName: 'プロファイル名',
+      profileNameDesc: 'OpenAI、DeepSeek、社内ゲートウェイなど識別しやすい名前を付けます。',
+      addProfile: 'サービスプロファイルを追加',
+      deleteProfile: '現在のプロファイルを削除',
+      deleteProfileConfirm: '「{{name}}」と保存済みキーを削除しますか？',
+      profileAdded: '回答サービスプロファイルを追加しました',
+      profileDeleted: '回答サービスプロファイルを削除しました',
       baseUrlDesc:
         '例: https://api.siliconflow.cn/v1。空欄の場合は OpenAI 互換のデフォルトを使用。',
       baseUrlPlaceholder: '空欄可、デフォルトは OpenAI API',
       presetPlaceholder: 'プロバイダーを選択',
+      protocolLabel: 'API プロトコル',
+      protocolDesc:
+        '自動はプロバイダーに適した方式を優先し、回答の出力前に非対応と判定した場合のみ切り替えます。',
+      protocolAuto: '自動（推奨）',
+      protocolResponses: 'Responses API',
+      protocolChat: 'Chat Completions',
+      protocolAnthropic: 'Anthropic Messages',
       apiKeyPlaceholder: 'API Key を入力',
+      apiKeyReplacePlaceholder: '保存済みキーを置き換える新しいキーを入力',
+      keyStored: '暗号化して保存済み ····{{suffix}}。元のキーは設定に保存されません。',
+      keyNotStored: 'このプロファイルにはキーが保存されていません。',
+      saveKey: 'キーを保存',
+      replaceKey: 'キーを置換',
+      deleteKey: 'キーを削除',
+      keySaved: 'キーを暗号化して保存しました',
+      keySaveFail: 'システムの安全なストレージにキーを保存できませんでした。',
+      keyDeleted: 'キーを削除しました',
       modelLabel: '回答モデル',
       modelDesc:
         'まずこのプロバイダーの定番モデルを表示します。Key 入力後、アカウントで利用可能なモデルを自動取得します。画像問題には「画像対応」を選んでください。',
@@ -405,10 +460,11 @@ const ja: TranslationSchema = {
       testFail: '接続に失敗しました：{{error}}',
       refresh: 'アカウントモデルを再取得',
       fetching: 'この Key で利用可能なモデルを取得中…',
-      fetched: 'アカウントから {{count}} 個のモデルを取得しました。',
-      fetchHint: 'Key を入力するとアカウントモデルを自動取得します。',
-      fetchAutoFailed: '自動取得できませんでした。更新ボタンで再試行できます。',
-      catalogUpdated: '定番リスト更新日: {{date}}。',
+      fetched: 'アカウントモデルを {{count}} 個更新しました。',
+      cached:
+        'アカウントモデルを {{count}} 個キャッシュ済みです。更新ボタンを押した時だけ再取得します。',
+      fetchHint: '必要な時に更新ボタンを押してアカウントモデルを取得します。',
+      fetchFailed: '取得に失敗しました。更新ボタンで再試行できます。',
       fetchOk: '{{count}} 個のアカウントモデルを取得しました',
       fetchFail: 'モデルの取得に失敗しました：{{error}}'
     },
@@ -436,9 +492,9 @@ const ja: TranslationSchema = {
       coachEnabled: '面接練習アシスタント',
       coachEnabledDesc:
         'リアルタイム文字起こしから話者と面接段階を判断し、構造化された回答提案を行います。',
-      realtimeAssist: 'AI リアルタイム支援',
+      realtimeAssist: '新しい質問を検出して回答ヒントを生成',
       realtimeAssistDesc:
-        '面接官の質問後に自動で AI を呼び出し回答ポイントを生成します（トークン消費が多め。オフにでき、「AI に相談」で手動実行も可）。',
+        '面接官の新しい質問を継続的に検出し、話し終わると回答ポイントを自動生成します（トークン消費が多め。「AI に相談」で手動実行も可能です）。',
       proactiveAssist: '能動的リアルタイム支援',
       proactiveAssistDesc:
         '質問やキー操作なしで、約20秒ごとに会話の流れに応じて先回りで提示します：あなたの履歴書の項目、関連する SOTA 技術、回答ポイント、逆質問の候補（トークン消費が最も多め。練習時の利用がおすすめ）。',
@@ -492,7 +548,7 @@ const ja: TranslationSchema = {
     },
     appearance: {
       title: '外観',
-      desc: '全体・ウィンドウ背景・文字の不透明度を個別に制御します。',
+      desc: 'UI の文字サイズ、ウィンドウ操作ボタン、4 種類の不透明度を調整します。',
       accentColor: 'アクセントカラー',
       accentColorDesc: 'UI のアクセント色をカスタマイズ。ボタン・強調・ヒントに反映されます。',
       accentColorCustom: 'カスタムカラー',
@@ -504,10 +560,28 @@ const ja: TranslationSchema = {
       windowOpacityDesc: '背景／パネルのみ。完全透明時は文字がウィンドウ上に浮きます。',
       textOpacity: '文字の不透明度',
       textOpacityDesc: '文字のみ。背景には影響しません。',
+      iconOpacity: 'アイコンの不透明度',
+      iconOpacityDesc: 'ボタンと状態アイコンのみ。文字・背景・スクリーンショットには影響しません。',
       transparent: '透明',
       opaque: '不透明',
       uiLanguage: '表示言語',
       uiLanguageDesc: 'アプリの表示言語を切り替えます。',
+      uiFontSize: 'UI の文字サイズ',
+      uiFontSizeDesc: 'ナビゲーション、設定、通常 UI の文字を調整します。解答は個別設定です。',
+      codeBlockTheme: 'コードブロックの表示',
+      codeBlockThemeDesc: 'コード領域の明暗を選択します。ソフトは目立つ真っ黒な背景を避けます。',
+      codeTheme: {
+        soft: 'ソフト（推奨）',
+        light: 'ライト',
+        dark: 'ダーク'
+      },
+      trafficLightMode: 'ウィンドウ操作ボタン',
+      trafficLightModeDesc: '通常は隠し、左上にポインターを置いたときだけ表示できます。',
+      trafficLights: {
+        hover: 'ホバー時に表示（推奨）',
+        always: '常に表示',
+        hidden: '常に隠す'
+      },
       reduceMotion: 'モーションを減らす',
       reduceMotionDesc: '画面のアニメーションを抑え、面接中の気が散るのを減らします。',
       motion: {
@@ -573,6 +647,107 @@ const ja: TranslationSchema = {
       previewDesc: 'これが AI プロンプトに実際に追加されるテキストです（現在のプロフィールから）。',
       previewEmpty: '（現在のプロフィールは空です。上の項目を入力するとここに表示されます）'
     },
+    projectKnowledge: {
+      title: 'プロジェクト知識',
+      desc: '実際に作ったコードと、確認済みの回答方針を回答に反映します。',
+      sourcesTitle: 'ローカルリポジトリ',
+      sourcesDesc: 'ソース、テスト、文書を索引化し、現在の質問に関係する断片だけを検索します。',
+      import: 'リポジトリを追加',
+      loading: 'プロジェクト知識を読み込み中…',
+      emptyProjects:
+        'プロジェクトはまだありません。ローカルのコードフォルダを選ぶと、実装に基づいて回答できます。',
+      projectStats: '{{files}} ファイル · {{chunks}} 断片',
+      sourceGraphStats: '{{symbols}} シンボル · {{relations}} 件のソース関係を解析',
+      updatedAt: '{{time}} に更新',
+      reindex: '再索引',
+      remove: '削除',
+      importSuccess: 'プロジェクトを索引化しました',
+      reindexSuccess: '索引を更新しました',
+      removeSuccess: '索引を削除しました',
+      actionFailed: '操作に失敗しました：{{error}}',
+      policiesTitle: '確認済みの回答方針',
+      policiesDesc:
+        'リアルタイム支援で確認した言い方です。類似質問で優先し、回答の矛盾を防ぎます。',
+      emptyPolicies:
+        '確認済みの方針はまだありません。良い回答で「次回もこの言い方を使う」を選んでください。',
+      edit: '編集',
+      save: '保存',
+      cancel: 'キャンセル',
+      delete: '削除',
+      saved: '回答方針を保存しました',
+      deleted: '回答方針を削除しました',
+      required: '質問と回答は必須です',
+      removeConfirm: 'ローカル索引だけを削除し、ソースコードは削除しません。続けますか？',
+      deletePolicyConfirm: '類似質問ではこの言い方を使わなくなります。続けますか？',
+      materials: {
+        title: '履歴書・チャット・プロジェクト資料',
+        desc: '履歴書、ユーザーの語り口、プロジェクト事実、参考案として分割索引し、関連部分だけを検索します。',
+        import: '資料を追加',
+        imported: '資料を索引化しました',
+        reindexed: '資料索引を更新しました',
+        removed: '資料索引を削除しました',
+        removeConfirm: 'ローカル索引だけを削除し、元ファイルは削除しません。続けますか？',
+        stats: '{{chunks}} 断片 · {{time}} 更新',
+        empty: 'PDF、Markdown、TXT、JSON の履歴書、チャット出力、プロジェクト文書を追加できます。'
+      },
+      external: {
+        title: '外部ナレッジ API',
+        desc: '既存のナレッジベースを接続し、プロジェクト事実、履歴書、ユーザーの語り口、参考案を区別します。',
+        add: 'API を接続',
+        name: 'ソース名',
+        namePlaceholder: '例：プロジェクト文書',
+        role: '証拠の役割',
+        endpoint: '検索エンドポイント',
+        protocol: 'API プロトコル',
+        auth: '認証方式',
+        apiKey: 'API Key',
+        keyPlaceholder: 'ナレッジ API Key を入力',
+        keyKeepPlaceholder: '空欄なら保存済み Key を維持',
+        headerName: '認証 Header',
+        namespace: 'スペース / プロジェクト ID',
+        namespacePlaceholder: '任意',
+        timeout: 'リアルタイム timeout (ms)',
+        advanced: '詳細フィールド対応',
+        queryField: '質問フィールド',
+        limitField: '件数フィールド',
+        namespaceField: 'スペースフィールド',
+        useInInterview: '面接中にこのソースを使用',
+        save: 'ソースを保存',
+        required: 'ソース名とエンドポイントは必須です',
+        saved: 'ナレッジ API を保存しました',
+        enabled: 'ナレッジソースを有効にしました',
+        disabled: 'ナレッジソースを無効にしました',
+        test: '接続テスト',
+        testSuccess: '接続成功：{{count}} 件の証拠を取得',
+        testFailed: '接続失敗：{{error}}',
+        deleteConfirm: 'このソースに保存した API Key も削除します。続けますか？',
+        deleted: 'ナレッジソースと Key を削除しました',
+        empty: '外部ソースはまだありません。Dify または汎用 JSON 検索 API を接続できます。',
+        noKeyNeeded: 'Key 不要',
+        keySaved: 'Key 保存済み ····{{suffix}}',
+        keyMissing: 'Key 未設定',
+        lastTestOk: '{{time}} 成功 · {{count}} 件',
+        lastTestFailed: '{{time}} 失敗',
+        roles: {
+          'project-fact': 'プロジェクト事実',
+          'candidate-profile': '履歴書情報',
+          'user-voice': 'ユーザーの語り口',
+          reference: '参考案'
+        },
+        protocols: {
+          'generic-json': '汎用 JSON 検索',
+          dify: 'Dify ナレッジベース'
+        },
+        authTypes: {
+          none: '認証なし',
+          bearer: 'Bearer Token',
+          'x-api-key': 'X-API-Key',
+          'custom-header': 'カスタム Header'
+        }
+      },
+      privacyNote:
+        '索引はこの端末に保存されます。現在の質問に関係する少量の断片だけを設定済みの回答モデルへ送信します。'
+    },
     privacy: {
       title: 'プライバシーとセキュリティ',
       desc: 'ローカル設定、権限、表示オプション。',
@@ -590,7 +765,10 @@ const ja: TranslationSchema = {
       stealthOn: '画面共有ステルスをオン',
       stealthOff: '画面共有ステルスをオフ',
       hideDock: 'Dock アイコンを隠す',
-      hideDockDesc: '有効にすると Dock と Cmd+Tab に表示されず、ショートカットでのみ呼び出せます。'
+      hideDockDesc:
+        '有効にすると Dock と Cmd+Tab に表示されません。横のショートカットで復元できます。',
+      dockHidden: 'Dock アイコンを非表示にしました',
+      dockShown: 'Dock アイコンを表示しました'
     }
   },
   help: {
@@ -683,9 +861,21 @@ const ja: TranslationSchema = {
       label: 'マウススルー',
       desc: '有効にすると、クリックがウィンドウを透過して背後の内容に届きます'
     },
+    newConversation: {
+      label: '新しい会話',
+      desc: '現在の会話を消去し、入力欄にカーソルを移動します'
+    },
+    focusComposer: {
+      label: '入力欄にフォーカス',
+      desc: 'ウィンドウを表示し、マウススルーを解除して入力を開始します'
+    },
     toggleContentProtection: {
       label: '画面共有ステルスの切替',
       desc: '録画・共有時のウィンドウ不可視をワンキーで切替'
+    },
+    toggleDockIcon: {
+      label: 'Dock アイコンの表示切替',
+      desc: 'Penumbra を Dock と Cmd+Tab に表示するか切り替えます'
     },
     increaseOverallOpacity: {
       label: '全体の不透明度を上げる',
@@ -710,6 +900,14 @@ const ja: TranslationSchema = {
     decreaseTextOpacity: {
       label: '文字の不透明度を下げる',
       desc: 'コンテンツの文字を透明にします'
+    },
+    increaseIconOpacity: {
+      label: 'アイコンの不透明度を上げる',
+      desc: 'ボタンと状態アイコンを見やすくします'
+    },
+    decreaseIconOpacity: {
+      label: 'アイコンの不透明度を下げる',
+      desc: 'ボタンと状態アイコンを透明にします'
     },
     takeScreenshot: {
       label: 'スクリーンショット',

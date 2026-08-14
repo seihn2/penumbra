@@ -3,8 +3,8 @@ import { getCloneableFields } from '@/lib/utils'
 
 const mainProcessSettingKeys: (keyof Settings)[] = [
   'apiBaseURL',
-  'apiKey',
   'model',
+  'answerApiProtocol',
   'customPrompt',
   'promptPreset',
   'appMode',
@@ -26,6 +26,7 @@ const mainProcessSettingKeys: (keyof Settings)[] = [
   'translationEnabled',
   'translationTargetLanguage',
   'hideDockIcon',
+  'trafficLightMode',
   'contentProtectionEnabled'
 ]
 
@@ -42,7 +43,7 @@ export function pickMainProcessSettings(settings: object): Partial<Settings> {
     // back into it, so the renderer copy is always empty. Skip empty secrets so
     // this write-back doesn't overwrite the encrypted value already on disk in
     // the main process (which would silently wipe the saved key on restart).
-    if ((key === 'apiKey' || key === 'dashscopeApiKey') && value === '') continue
+    if (key === 'dashscopeApiKey' && value === '') continue
     pickedSettings[key] = value
   }
 

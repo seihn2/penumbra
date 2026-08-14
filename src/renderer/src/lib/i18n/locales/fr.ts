@@ -284,9 +284,26 @@ const fr: TranslationSchema = {
     suggestions: 'Suggestions',
     aiAssist: 'Assistance IA en direct',
     askAi: "Demander à l'IA",
+    detectedQuestion: 'Nouvelle question détectée',
+    detectedQuestionWaiting: 'Préparation des points de réponse pour cette question…',
     aiAssistLoading: 'Génération des points de réponse…',
     aiAssistEmpty:
       "Les points de réponse apparaissent automatiquement après la question du recruteur ; ou appuyez sur « Demander à l'IA ».",
+    assist: {
+      opening: 'À dire en premier',
+      path: 'Fil de réponse',
+      evidence: 'Preuves du projet',
+      followUp: 'Relances probables',
+      avoid: 'À éviter',
+      kind: {
+        project: 'Approfondissement projet',
+        behavioral: 'Question comportementale',
+        'system-design': 'Conception système',
+        algorithm: 'Algorithme',
+        concept: 'Concept et principe',
+        general: 'Question générale'
+      }
+    },
     topicSummary: 'Résumé des sujets',
     exportTranscript: "Exporter le compte rendu d'entretien",
     exported: "Compte rendu d'entretien exporté",
@@ -299,6 +316,20 @@ const fr: TranslationSchema = {
     speakerUnknown: 'Inconnu',
     copyPoints: 'Copier les points',
     pointsCopied: 'Copié',
+    rememberAnswerPolicy: 'Réutiliser cette formulation',
+    answerPolicyRemembered: 'Formulation enregistrée',
+    answerPolicySaved:
+      'Enregistré. Les questions similaires utiliseront cette formulation en priorité.',
+    answerPolicySaveFailed: "Échec de l'enregistrement : {{error}}",
+    answerPolicyConflict: 'Une question similaire possède déjà une formulation validée',
+    answerPolicyPrevious: 'Formulation actuellement enregistrée',
+    answerPolicyKeepPrevious: 'Conserver l’ancienne',
+    answerPolicyReplace: 'Remplacer par cette réponse',
+    rememberSpokenAnswer: 'Mémoriser ce que je viens de dire',
+    spokenAnswerTitle: 'Confirmer mon vrai chemin de réponse',
+    spokenAnswerDesc:
+      'Voici la transcription de votre réponse. Corrigez les erreurs ASR avant de l’enregistrer pour les questions similaires.',
+    saveSpokenAnswer: 'Enregistrer ma réponse',
     prevPoint: 'Précédent',
     nextPoint: 'Suivant',
     pointIndex: '{{current}}/{{total}}',
@@ -387,11 +418,38 @@ const fr: TranslationSchema = {
     model: {
       title: 'Service de Modèle',
       desc: 'Configurez un service de modèle compatible OpenAI pour la résolution, les suivis et la traduction.',
+      profile: 'Profil de Service',
+      profileDesc:
+        'Chaque profil sépare son endpoint, son modèle, son cache de modèles et sa clé chiffrée.',
+      profileName: 'Nom du Profil',
+      profileNameDesc:
+        'Utilisez un nom reconnaissable comme OpenAI, DeepSeek ou Passerelle Entreprise.',
+      addProfile: 'Ajouter un profil de service',
+      deleteProfile: 'Supprimer le profil actuel',
+      deleteProfileConfirm: 'Supprimer « {{name}} » et sa clé enregistrée ?',
+      profileAdded: 'Profil de service de réponse ajouté',
+      profileDeleted: 'Profil de service de réponse supprimé',
       baseUrlDesc:
         'ex. https://api.siliconflow.cn/v1 ; laissez vide pour utiliser le point de terminaison OpenAI par défaut.',
       baseUrlPlaceholder: 'Optionnel, par défaut API OpenAI',
       presetPlaceholder: 'Choisir un fournisseur',
+      protocolLabel: 'Protocole API',
+      protocolDesc:
+        'Le mode automatique privilégie le protocole adapté et ne bascule qu’avant le premier texte si la route est indisponible.',
+      protocolAuto: 'Automatique (recommandé)',
+      protocolResponses: 'Responses API',
+      protocolChat: 'Chat Completions',
+      protocolAnthropic: 'Anthropic Messages',
       apiKeyPlaceholder: 'Saisir la clé API',
+      apiKeyReplacePlaceholder: 'Saisir une nouvelle clé pour remplacer celle enregistrée',
+      keyStored: 'Clé chiffrée enregistrée ····{{suffix}}. La clé brute reste hors des réglages.',
+      keyNotStored: 'Aucune clé enregistrée pour ce profil.',
+      saveKey: 'Enregistrer la Clé',
+      replaceKey: 'Remplacer la Clé',
+      deleteKey: 'Supprimer la Clé',
+      keySaved: 'Clé chiffrée et enregistrée',
+      keySaveFail: 'Impossible d’enregistrer la clé dans le stockage sécurisé du système.',
+      keyDeleted: 'Clé supprimée',
       modelLabel: 'Modèle de réponse',
       modelDesc:
         'Commencez par les modèles courants du fournisseur. Après saisie de la clé, les modèles du compte sont chargés automatiquement. Choisissez un modèle Vision pour les captures.',
@@ -414,11 +472,11 @@ const fr: TranslationSchema = {
       testFail: 'Échec de la connexion : {{error}}',
       refresh: 'Recharger les modèles du compte',
       fetching: 'Chargement des modèles disponibles pour cette clé…',
-      fetched: '{{count}} modèles chargés depuis le compte.',
-      fetchHint: 'Les modèles du compte se chargent automatiquement après saisie de la clé.',
-      fetchAutoFailed:
-        'Impossible de charger les modèles du compte. Utilisez actualiser pour réessayer.',
-      catalogUpdated: 'Liste courante mise à jour le {{date}}.',
+      fetched: '{{count}} modèles du compte mis à jour.',
+      cached:
+        '{{count}} modèles du compte en cache ; ils ne sont rechargés qu’après un clic sur actualiser.',
+      fetchHint: 'Cliquez sur actualiser lorsque vous voulez charger les modèles du compte.',
+      fetchFailed: 'Chargement impossible. Cliquez sur actualiser pour réessayer.',
       fetchOk: '{{count}} modèles du compte chargés',
       fetchFail: 'Échec du chargement des modèles : {{error}}'
     },
@@ -448,9 +506,9 @@ const fr: TranslationSchema = {
       coachEnabled: "Assistant d'Entraînement",
       coachEnabledDesc:
         "Détecte le locuteur et l'étape de l'entretien à partir de la transcription et propose des réponses structurées.",
-      realtimeAssist: 'Assistance IA en direct',
+      realtimeAssist: 'Détecter les nouvelles questions et préparer une réponse',
       realtimeAssistDesc:
-        "Appelle automatiquement l'IA pour des points de réponse après la question du recruteur (consomme plus de tokens ; peut être désactivé ou déclenché via « Demander à l'IA »).",
+        "Détecte en continu les nouvelles questions du recruteur et génère des points de réponse lorsqu'il a fini de parler (consomme plus de tokens ; déclenchement manuel possible via « Demander à l'IA »).",
       proactiveAssist: 'Coaching proactif en direct',
       proactiveAssistDesc:
         "Sans question ni touche — toutes les ~20s, des suggestions proactives selon le fil de la conversation : vos projets du CV, techniques SOTA pertinentes, points de réponse et bonnes questions à poser (consomme le plus de tokens ; idéal pour s'entraîner).",
@@ -504,7 +562,7 @@ const fr: TranslationSchema = {
     },
     appearance: {
       title: 'Apparence',
-      desc: "Contrôlez séparément l'opacité globale, du fond et du texte.",
+      desc: "Réglez le texte de l'interface, les contrôles de fenêtre et quatre opacités.",
       accentColor: "Couleur d'accent",
       accentColorDesc: "Personnalisez la couleur d'accent — boutons, surbrillances et indices.",
       accentColorCustom: 'Couleur personnalisée',
@@ -517,10 +575,31 @@ const fr: TranslationSchema = {
         'Fond/panneaux uniquement. À pleine transparence, le texte flotte sur la fenêtre.',
       textOpacity: 'Opacité du Texte',
       textOpacityDesc: 'Texte uniquement, le fond reste inchangé.',
+      iconOpacity: 'Opacité des Icônes',
+      iconOpacityDesc:
+        'Boutons et icônes d’état uniquement ; le texte, le fond et les captures restent inchangés.',
       transparent: 'Transparent',
       opaque: 'Opaque',
       uiLanguage: "Langue de l'Interface",
       uiLanguageDesc: "Changez la langue d'affichage de l'application.",
+      uiFontSize: "Taille du Texte de l'Interface",
+      uiFontSizeDesc:
+        'Ajustez la navigation, les réglages et le texte général ; les réponses restent séparées.',
+      codeBlockTheme: 'Style des Blocs de Code',
+      codeBlockThemeDesc:
+        'Réglez le contraste du code ; le mode doux évite un fond noir trop visible.',
+      codeTheme: {
+        soft: 'Doux (recommandé)',
+        light: 'Clair',
+        dark: 'Sombre'
+      },
+      trafficLightMode: 'Contrôles de Fenêtre',
+      trafficLightModeDesc: "Masquez les boutons macOS jusqu'au survol du coin supérieur gauche.",
+      trafficLights: {
+        hover: 'Afficher au survol (recommandé)',
+        always: 'Toujours afficher',
+        hidden: 'Toujours masquer'
+      },
       reduceMotion: 'Réduire les animations',
       reduceMotionDesc:
         "Atténue les animations de l'interface pour moins de distractions en entretien.",
@@ -590,6 +669,109 @@ const fr: TranslationSchema = {
       previewDesc: "C'est le texte exact ajouté au prompt IA (depuis le profil actif).",
       previewEmpty: '(Le profil actif est vide — remplissez les champs ci-dessus pour le voir ici)'
     },
+    projectKnowledge: {
+      title: 'Connaissance du projet',
+      desc: 'Ancre les réponses dans votre code réel et dans les formulations que vous avez validées.',
+      sourcesTitle: 'Dépôts locaux',
+      sourcesDesc:
+        'Indexe le code, les tests et la documentation, puis ne récupère que les extraits liés à la question.',
+      import: 'Ajouter un dépôt',
+      loading: 'Chargement des connaissances du projet…',
+      emptyProjects:
+        "Aucun projet ajouté. Sélectionnez un dépôt local pour répondre à partir de l'implémentation réelle.",
+      projectStats: '{{files}} fichiers · {{chunks}} extraits',
+      sourceGraphStats: '{{symbols}} symboles · {{relations}} relations de code cartographiées',
+      updatedAt: 'Mis à jour {{time}}',
+      reindex: 'Réindexer',
+      remove: 'Retirer',
+      importSuccess: 'Projet indexé',
+      reindexSuccess: 'Index du projet mis à jour',
+      removeSuccess: 'Index du projet retiré',
+      actionFailed: 'Échec de l’action : {{error}}',
+      policiesTitle: 'Formulations validées',
+      policiesDesc:
+        'Formulations validées depuis l’assistance en direct. Elles sont réutilisées pour garder des réponses cohérentes.',
+      emptyPolicies:
+        'Aucune formulation validée. Sur une réponse utile, choisissez « Réutiliser cette formulation ».',
+      edit: 'Modifier',
+      save: 'Enregistrer',
+      cancel: 'Annuler',
+      delete: 'Supprimer',
+      saved: 'Formulation enregistrée',
+      deleted: 'Formulation supprimée',
+      required: 'La question et la réponse sont obligatoires',
+      removeConfirm: 'Seul l’index local sera retiré, jamais le code source. Continuer ?',
+      deletePolicyConfirm:
+        'Les questions similaires n’utiliseront plus cette formulation. Continuer ?',
+      materials: {
+        title: 'CV, chats et documents projet',
+        desc: 'Découpe et classe les fichiers comme CV, voix utilisateur, faits du projet ou références, puis récupère uniquement les passages utiles.',
+        import: 'Ajouter un document',
+        imported: 'Document indexé',
+        reindexed: 'Index du document mis à jour',
+        removed: 'Index du document retiré',
+        removeConfirm: 'Seul l’index local sera retiré, jamais le fichier original. Continuer ?',
+        stats: '{{chunks}} extraits · mis à jour {{time}}',
+        empty: 'Ajoutez des CV, exports de chat et documents projet en PDF, Markdown, TXT ou JSON.'
+      },
+      external: {
+        title: 'API de connaissance externe',
+        desc: 'Connecte une base existante et distingue les faits du projet, le CV, la voix utilisateur et les solutions de référence.',
+        add: 'Connecter une API',
+        name: 'Nom de la source',
+        namePlaceholder: 'ex. Documentation du projet',
+        role: 'Rôle de la preuve',
+        endpoint: 'Endpoint de recherche',
+        protocol: 'Protocole API',
+        auth: 'Authentification',
+        apiKey: 'Clé API',
+        keyPlaceholder: 'Saisir la clé de la base',
+        keyKeepPlaceholder: 'Laisser vide pour conserver la clé',
+        headerName: 'Header d’authentification',
+        namespace: 'Espace / ID projet',
+        namespacePlaceholder: 'Facultatif',
+        timeout: 'Délai temps réel (ms)',
+        advanced: 'Mapping avancé des champs',
+        queryField: 'Champ de requête',
+        limitField: 'Champ de limite',
+        namespaceField: 'Champ d’espace',
+        useInInterview: 'Utiliser cette source pendant l’entretien',
+        save: 'Enregistrer la source',
+        required: 'Le nom et l’endpoint sont obligatoires',
+        saved: 'API de connaissance enregistrée',
+        enabled: 'Source activée',
+        disabled: 'Source désactivée',
+        test: 'Tester la connexion',
+        testSuccess: 'Connexion réussie, {{count}} preuve(s) reçue(s)',
+        testFailed: 'Échec de connexion : {{error}}',
+        deleteConfirm: 'La clé API enregistrée pour cette source sera aussi supprimée. Continuer ?',
+        deleted: 'Source et clé supprimées',
+        empty: 'Aucune source externe. Connectez Dify ou une API JSON générique.',
+        noKeyNeeded: 'Aucune clé requise',
+        keySaved: 'Clé enregistrée ····{{suffix}}',
+        keyMissing: 'Clé manquante',
+        lastTestOk: 'Réussi {{time}} · {{count}} élément(s)',
+        lastTestFailed: 'Échec {{time}}',
+        roles: {
+          'project-fact': 'Faits du projet',
+          'candidate-profile': 'Contexte du CV',
+          'user-voice': 'Voix utilisateur',
+          reference: 'Solution de référence'
+        },
+        protocols: {
+          'generic-json': 'Recherche JSON générique',
+          dify: 'Base Dify'
+        },
+        authTypes: {
+          none: 'Sans authentification',
+          bearer: 'Bearer Token',
+          'x-api-key': 'X-API-Key',
+          'custom-header': 'Header personnalisé'
+        }
+      },
+      privacyNote:
+        'L’index reste sur cet appareil. Seuls quelques extraits liés à la question sont envoyés au modèle de réponse configuré.'
+    },
     privacy: {
       title: 'Confidentialité & Sécurité',
       desc: "Configuration locale, permissions et options d'affichage.",
@@ -608,7 +790,9 @@ const fr: TranslationSchema = {
       stealthOff: "Furtivité de partage d'écran désactivée",
       hideDock: "Masquer l'icône du Dock",
       hideDockDesc:
-        'Une fois activé, masque du Dock et de Cmd+Tab ; la fenêtre ne peut être appelée que par raccourci.'
+        "Une fois activé, masque l'application du Dock et de Cmd+Tab ; le raccourci adjacent restaure l'icône.",
+      dockHidden: 'Icône du Dock masquée',
+      dockShown: 'Icône du Dock affichée'
     }
   },
   help: {
@@ -702,9 +886,21 @@ const fr: TranslationSchema = {
       label: 'Passage de souris',
       desc: 'Une fois activé, les clics traversent la fenêtre vers ce qui est derrière'
     },
+    newConversation: {
+      label: 'Nouvelle conversation',
+      desc: 'Effacer la conversation actuelle et placer le curseur dans la zone de saisie'
+    },
+    focusComposer: {
+      label: 'Activer la zone de saisie',
+      desc: 'Afficher la fenêtre, désactiver le passage de souris et commencer à écrire'
+    },
     toggleContentProtection: {
       label: "Basculer la furtivité de partage d'écran",
       desc: "Une touche pour activer/désactiver l'invisibilité lors de l'enregistrement/partage"
+    },
+    toggleDockIcon: {
+      label: "Masquer/Afficher l'icône du Dock",
+      desc: 'Basculer la présence de Penumbra dans le Dock et Cmd+Tab'
     },
     increaseOverallOpacity: {
       label: "Augmenter l'opacité globale",
@@ -726,6 +922,14 @@ const fr: TranslationSchema = {
     decreaseTextOpacity: {
       label: "Diminuer l'opacité du texte",
       desc: 'Rend le texte plus transparent'
+    },
+    increaseIconOpacity: {
+      label: "Augmenter l'opacité des icônes",
+      desc: 'Rend les boutons et icônes d’état plus visibles'
+    },
+    decreaseIconOpacity: {
+      label: "Diminuer l'opacité des icônes",
+      desc: 'Rend les boutons et icônes d’état plus transparents'
     },
     takeScreenshot: {
       label: 'Capture',

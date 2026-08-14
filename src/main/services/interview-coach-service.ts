@@ -13,17 +13,18 @@ import { withFirstChunkTimeout } from '../../shared/stream-timeout'
 import {
   analyzeTranscriptTurn,
   createInitialInterviewCoachState,
-  looksLikeQuestion,
   type InterviewCoachState,
   type InterviewLanguage,
   type SpeakerRole
 } from '../../shared/interview-coach'
+import { currentQuestion, isStaleResponse } from '../../shared/question-machine'
 import {
-  createMachine,
-  detectQuestion,
-  currentQuestion,
-  type QuestionMachine
-} from '../../shared/question-machine'
+  createInterviewQuestionDetectionState,
+  forceInterviewQuestion,
+  processFinalInterviewTurn,
+  type InterviewQuestionDetectionState,
+  type InterviewQuestionSnapshot
+} from '../../shared/interview-question-detection'
 import { shouldTranslateText } from '../../shared/translation-gate'
 import { shouldRunProactiveAssist } from '../../shared/proactive-assist'
 import { shouldDistillMemory } from '../../shared/memory-distill-gate'
@@ -38,6 +39,7 @@ import {
   summarizeManifestForUser,
   type ContextItem
 } from '../../shared/context-manifest'
+import { projectKnowledgeService } from './project-knowledge-service'
 
 export type RendererSender = (channel: string, ...args: unknown[]) => void
 
@@ -86,11 +88,9 @@ export class InterviewCoachService {
   // chunk can never overwrite the answer for a newer question. Runtime embodiment
   // of question-machine's isStaleResponse guard.
   private assistRequestSeq = 0
-  private pendingQuestion = ''
-  // Structured current-question tracker (question-machine). Runs alongside the
-  // debounced-assist flow: interviewer turns are detected as questions so the
-  // current/queued question state is queryable and can tag requests later.
-  private questionMachine: QuestionMachine = createMachine()
+  private pendingAssist: InterviewQuestionSnapshot | null = null
+  private questionDetection: InterviewQuestionDetectionState =
+    createInterviewQuestionDetectionState()
   private recentTurns: { speaker: SpeakerRole; text: string }[] = []
   private finalizedTurnCount = 0
   private lastSummaryAtTurn = 0
@@ -128,7 +128,8 @@ export class InterviewCoachService {
     }
     this.assistAbort?.abort()
     this.assistAbort = null
-    this.pendingQuestion = ''
+    this.pendingAssist = null
+    this.questionDetection = createInterviewQuestionDetectionState()
     this.recentTurns = []
     this.finalizedTurnCount = 0
     this.lastSummaryAtTurn = 0
@@ -172,7 +173,7 @@ export class InterviewCoachService {
     }
     this.assistAbort?.abort()
     this.assistAbort = null
-    this.pendingQuestion = ''
+    this.pendingAssist = null
     this.stopProactive()
     this.assistInFlight = false
     this.distillAbort?.abort()
@@ -196,7 +197,11 @@ export class InterviewCoachService {
   }
 
   private updateCoach(event: TranscriptionSentenceEvent) {
-    if (!settings.interviewCoachEnabled || !event.text.trim()) return
+    const needsConversationAnalysis =
+      settings.interviewCoachEnabled ||
+      settings.realtimeAssistEnabled ||
+      settings.proactiveAssistEnabled
+    if (!needsConversationAnalysis || !event.text.trim()) return
     const providerSpeaker = event.providerSpeaker
 
     this.coachState = analyzeTranscriptTurn(this.coachState, {
@@ -218,17 +223,27 @@ export class InterviewCoachService {
     this.recentTurns = this.recentTurns.slice(-12)
     this.finalizedTurnCount += 1
 
-    if (!settings.realtimeAssistEnabled) return
+    if (settings.realtimeAssistEnabled) {
+      const detection = processFinalInterviewTurn(this.questionDetection, {
+        speaker,
+        text,
+        now: Date.now()
+      })
+      this.questionDetection = detection.state
 
-    // The interviewer is talking — accumulate their words, and (re)arm a
-    // debounced assist only when what they've said looks like an actual
-    // question, so filler/transition lines don't waste tokens.
-    if (speaker === 'interviewer') {
-      this.pendingQuestion = this.pendingQuestion ? `${this.pendingQuestion} ${text}` : text
-      this.questionMachine = detectQuestion(this.questionMachine, { text, now: Date.now() })
-      if (this.assistTimer) clearTimeout(this.assistTimer)
-      if (looksLikeQuestion(this.pendingQuestion)) {
-        this.assistTimer = setTimeout(() => void this.runAssist(), resolveAssistDebounceMs())
+      if (detection.detected) {
+        this.pendingAssist = detection.detected
+        this.hasReadyAnswer = false
+        this.sendToRenderer('interview-question-detected', detection.detected)
+        if (this.assistTimer) clearTimeout(this.assistTimer)
+        // A refinement/new question invalidates any currently streaming answer.
+        // The turnId/revision guard below also drops providers that ignore abort.
+        this.assistAbort?.abort()
+        const snapshot = detection.detected
+        this.assistTimer = setTimeout(
+          () => void this.runAssist(snapshot),
+          resolveAssistDebounceMs()
+        )
       }
     }
 
@@ -257,17 +272,28 @@ export class InterviewCoachService {
 
   /** Manually trigger an assist from whatever the interviewer last said. */
   requestAssistNow() {
-    const question =
-      this.pendingQuestion ||
-      [...this.recentTurns].reverse().find((turn) => turn.speaker === 'interviewer')?.text ||
-      this.recentTurns[this.recentTurns.length - 1]?.text ||
-      ''
+    let snapshot =
+      this.pendingAssist ?? snapshotFromCurrentQuestion(this.questionDetection, Date.now())
+    if (!snapshot) {
+      const question =
+        [...this.recentTurns].reverse().find((turn) => turn.speaker === 'interviewer')?.text ||
+        this.recentTurns[this.recentTurns.length - 1]?.text ||
+        ''
+      const forced = forceInterviewQuestion(this.questionDetection, {
+        text: question,
+        now: Date.now()
+      })
+      this.questionDetection = forced.state
+      snapshot = forced.detected
+      if (snapshot) this.sendToRenderer('interview-question-detected', snapshot)
+    }
     if (this.assistTimer) {
       clearTimeout(this.assistTimer)
       this.assistTimer = null
     }
-    this.pendingQuestion = question
-    void this.runAssist()
+    if (!snapshot) return
+    this.pendingAssist = snapshot
+    void this.runAssist(snapshot)
   }
 
   /** Whether an assist stream is currently in flight (for the live capsule). */
@@ -293,7 +319,7 @@ export class InterviewCoachService {
 
   /** The structured current-question text from the question machine, or ''. */
   currentDetectedQuestion(): string {
-    return currentQuestion(this.questionMachine)?.text ?? ''
+    return currentQuestion(this.questionDetection.machine)?.text ?? ''
   }
 
   /** Build a post-interview debrief (复盘) report from the accumulated coach
@@ -326,7 +352,8 @@ export class InterviewCoachService {
       estimatedTokens: 0
     }))
     const manifest = compileContext({
-      currentQuestion: this.pendingQuestion,
+      currentQuestion:
+        this.pendingAssist?.question ?? currentQuestion(this.questionDetection.machine)?.text ?? '',
       items,
       constraints: [],
       summary: '',
@@ -337,9 +364,11 @@ export class InterviewCoachService {
     return summarizeManifestForUser(manifest)
   }
 
-  private async runAssist() {
-    const question = this.pendingQuestion
-    this.pendingQuestion = ''
+  private async runAssist(snapshot: InterviewQuestionSnapshot) {
+    const { question, turnId, revision } = snapshot
+    if (this.pendingAssist?.turnId === turnId && this.pendingAssist.revision === revision) {
+      this.pendingAssist = null
+    }
     this.assistTimer = null
     if (!question.trim()) return
 
@@ -352,11 +381,14 @@ export class InterviewCoachService {
     this.hasReadyAnswer = false
     const requestId = ++this.assistRequestSeq
     // Only the latest request may emit — drops late chunks from a superseded run.
-    const isCurrent = () => requestId === this.assistRequestSeq && !abort.signal.aborted
+    const isCurrent = () =>
+      requestId === this.assistRequestSeq &&
+      !abort.signal.aborted &&
+      !isStaleResponse(this.questionDetection.machine, turnId, revision)
 
-    const startedAt = Date.now()
     let assistOk = true
-    this.sendToRenderer('interview-assist-loading', { question, timestamp: startedAt })
+    const requestTag = { question, turnId, revision, timestamp: snapshot.timestamp }
+    this.sendToRenderer('interview-assist-loading', requestTag)
     try {
       let points = ''
       const stream = withFirstChunkTimeout(
@@ -367,15 +399,14 @@ export class InterviewCoachService {
       for await (const chunk of stream) {
         if (!isCurrent()) return
         points += chunk
-        this.sendToRenderer('interview-assist-chunk', { question, points, timestamp: startedAt })
+        this.sendToRenderer('interview-assist-chunk', { ...requestTag, points })
       }
       if (!isCurrent()) return
       if (points.trim()) {
         this.hasReadyAnswer = true
         this.sendToRenderer('interview-assist', {
-          question,
-          points: points.trim(),
-          timestamp: startedAt
+          ...requestTag,
+          points: points.trim()
         })
       } else {
         this.sendToRenderer('interview-assist-error')
@@ -389,9 +420,12 @@ export class InterviewCoachService {
     } finally {
       if (requestId === this.assistRequestSeq) this.assistInFlight = false
       recordEgress({
-        categories: settings.userMemory?.trim()
-          ? ['transcript', 'prompt', 'profile']
-          : ['transcript', 'prompt'],
+        categories: [
+          'transcript',
+          'prompt',
+          ...(settings.userMemory?.trim() ? (['profile'] as const) : []),
+          ...(projectKnowledgeService.hasRelevantContext(question) ? (['knowledge'] as const) : [])
+        ],
         reason: 'interview-assist',
         approxBytes: question.length + this.buildContext().length,
         outcome: assistOk ? 'success' : 'failure',
@@ -539,5 +573,19 @@ export class InterviewCoachService {
     } finally {
       this.translationAborts.delete(abort)
     }
+  }
+}
+
+function snapshotFromCurrentQuestion(
+  state: InterviewQuestionDetectionState,
+  timestamp: number
+): InterviewQuestionSnapshot | null {
+  const question = currentQuestion(state.machine)
+  if (!question || question.status === 'expired') return null
+  return {
+    turnId: question.turnId,
+    revision: question.revision,
+    question: question.text,
+    timestamp
   }
 }

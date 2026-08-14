@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { useShortcuts, useShortcutsWithActions, useShortcutsStore } from '@/lib/store/shortcuts'
 import { useSettingValue } from '@/lib/store/settings'
 import { shortcutCategories, shortcutMetadata } from '@/lib/shortcut-metadata'
+import { isMac } from '@/lib/utils/env'
 import { ShortcutRow } from './ShortcutRow'
 import { useShortcutRecorder } from './useShortcutRecorder'
 
@@ -20,7 +21,7 @@ export function CustomShortcuts() {
             {t(`shortcutCategory.${category.id}`)}
           </h3>
           {shortcutMetadata
-            .filter((shortcut) => shortcut.category === category.id)
+            .filter((shortcut) => shortcut.category === category.id && (!shortcut.macOnly || isMac))
             .map((shortcut) => (
               <ShortcutRow
                 key={shortcut.action}

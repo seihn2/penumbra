@@ -11,10 +11,12 @@ import { SettingRow, SettingsSection } from './components'
 export function PrivacySettingsSection() {
   const { t } = useTranslation()
   const { hideDockIcon, contentProtectionEnabled, updateSetting } = usePrivacySettings()
-  const apiKey = useSettingValue('apiKey')
+  const answerServiceKeyConfigured = useSettingValue('answerServiceKeyConfigured')
   const dashscopeApiKey = useSettingValue('dashscopeApiKey')
-  const configuredSecretCount = Number(Boolean(apiKey)) + Number(Boolean(dashscopeApiKey))
+  const configuredSecretCount =
+    Number(answerServiceKeyConfigured) + Number(Boolean(dashscopeApiKey))
   const stealthShortcut = useShortcut('toggleContentProtection')
+  const dockShortcut = useShortcut('toggleDockIcon')
 
   return (
     <SettingsSection
@@ -61,10 +63,18 @@ export function PrivacySettingsSection() {
           title={t('settings.privacy.hideDock')}
           description={t('settings.privacy.hideDockDesc')}
         >
-          <Switch
-            checked={hideDockIcon}
-            onCheckedChange={(checked) => updateSetting('hideDockIcon', checked)}
-          />
+          <div className="flex items-center gap-2">
+            {dockShortcut?.key && (
+              <ShortcutRenderer
+                shortcut={dockShortcut.key}
+                className="bg-[var(--surface-3)] text-[var(--text-secondary)]"
+              />
+            )}
+            <Switch
+              checked={hideDockIcon}
+              onCheckedChange={(checked) => updateSetting('hideDockIcon', checked)}
+            />
+          </div>
         </SettingRow>
       )}
     </SettingsSection>

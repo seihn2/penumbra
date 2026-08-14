@@ -6,6 +6,7 @@ import {
   Mic,
   Languages,
   BriefcaseBusiness,
+  DatabaseZap,
   SlidersHorizontal,
   Keyboard,
   FolderOpen,
@@ -14,12 +15,14 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { useSettingValue } from '@/lib/store/settings'
 import { cn } from '@/lib/utils'
 import { isMac } from '@/lib/utils/env'
 import { AppearanceSettingsSection } from './AppearanceSettingsSection'
 import { MemorySettingsSection } from './MemorySettingsSection'
 import { ModelSettingsSection } from './ModelSettingsSection'
 import { PrivacySettingsSection } from './PrivacySettingsSection'
+import { ProjectKnowledgeSettingsSection } from './ProjectKnowledgeSettingsSection'
 import { ShortcutsSettingsSection } from './ShortcutsSettingsSection'
 import { StorageSettingsSection } from './StorageSettingsSection'
 import { StrategySettingsSection } from './StrategySettingsSection'
@@ -53,6 +56,12 @@ const TABS: SettingsTab[] = [
     Section: MemorySettingsSection
   },
   {
+    id: 'project-knowledge',
+    icon: DatabaseZap,
+    labelKey: 'settings.projectKnowledge.title',
+    Section: ProjectKnowledgeSettingsSection
+  },
+  {
     id: 'appearance',
     icon: SlidersHorizontal,
     labelKey: 'settings.appearance.title',
@@ -80,13 +89,14 @@ const TABS: SettingsTab[] = [
 
 export default function SettingsPage() {
   const { t } = useTranslation()
+  const trafficLightMode = useSettingValue('trafficLightMode')
   const [activeId, setActiveId] = useState(TABS[0].id)
   const ActiveSection = (TABS.find((tab) => tab.id === activeId) ?? TABS[0]).Section
 
   return (
     <>
       <div id="app-header" className="flex items-center justify-between">
-        <div className={`actions ${isMac ? 'pl-[78px]' : 'pl-2'}`}>
+        <div className={`actions ${isMac && trafficLightMode !== 'hidden' ? 'pl-[78px]' : 'pl-2'}`}>
           <Button
             variant="ghost"
             asChild
@@ -105,9 +115,9 @@ export default function SettingsPage() {
       </div>
 
       <main id="app-content" className="settings-shell">
-        <div className="mx-auto flex w-full max-w-[920px] gap-5 px-5 py-4">
+        <div className="settings-layout">
           {/* Left vertical tab rail */}
-          <nav className="flex w-44 shrink-0 flex-col gap-0.5">
+          <nav className="settings-nav">
             {TABS.map((tab) => {
               const Icon = tab.icon
               const active = tab.id === activeId
@@ -117,14 +127,14 @@ export default function SettingsPage() {
                   type="button"
                   onClick={() => setActiveId(tab.id)}
                   className={cn(
-                    'relative flex items-center gap-2.5 rounded-[var(--r-control)] px-3 py-2 text-left text-sm transition-colors',
+                    'settings-nav-item relative flex items-center gap-2.5 rounded-[var(--r-control)] px-3 py-2 text-left text-sm transition-colors',
                     active
                       ? 'bg-[var(--accent-soft)] font-medium text-[var(--accent)]'
                       : 'text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]'
                   )}
                 >
                   {active && (
-                    <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[var(--accent)]" />
+                    <span className="settings-nav-marker absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[var(--accent-fill)]" />
                   )}
                   <Icon className="h-4 w-4 shrink-0" />
                   <span className="truncate">{t(tab.labelKey)}</span>
@@ -134,7 +144,7 @@ export default function SettingsPage() {
           </nav>
 
           {/* Right content area */}
-          <div className="min-w-0 flex-1">
+          <div className="settings-content min-w-0 flex-1">
             <ActiveSection />
           </div>
         </div>

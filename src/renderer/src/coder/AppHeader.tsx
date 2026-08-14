@@ -23,6 +23,7 @@ import { useIgnoreMouse } from '@/lib/store/app'
 import { useChatStore, useChatMessages } from '@/lib/store/chat'
 import { useTranscriptionStore } from '@/lib/store/transcription'
 import { useShortcut } from '@/lib/store/shortcuts'
+import { useSettingValue } from '@/lib/store/settings'
 import { conversationToMarkdown } from '@/lib/utils/conversation-export'
 import { getShortcutAcceleratorDisplay } from '@/lib/utils/keyboard'
 import {
@@ -52,11 +53,13 @@ export function AppHeader() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const ignoreMouse = useIgnoreMouse()
+  const trafficLightMode = useSettingValue('trafficLightMode')
   const toggleHistory = useHistoryUi((s) => s.toggle)
   const messages = useChatMessages()
   const hasMessages = messages.length > 0
   const isTranscribing = useTranscriptionStore((s) => s.isTranscribing)
   const toggleShortcut = useShortcut('toggleTranscription')
+  const newConversationShortcut = useShortcut('newConversation')
   const toggleTranscription = useTranscriptionToggle()
   const [selfCheckOpen, setSelfCheckOpen] = useState(false)
   const [briefOpen, setBriefOpen] = useState(false)
@@ -73,6 +76,9 @@ export function AppHeader() {
   const micTitle = isTranscribing
     ? t('header.transcriptionStopHint', { key: keyDisplay })
     : t('header.transcriptionStartHint', { key: keyDisplay })
+  const newConversationTitle = newConversationShortcut?.key
+    ? `${t('header.newConversation')} · ${getShortcutAcceleratorDisplay(newConversationShortcut.key)}`
+    : t('header.newConversation')
 
   const exportConversation = async () => {
     const markdown = conversationToMarkdown(useChatStore.getState().messages)
@@ -97,7 +103,7 @@ export function AppHeader() {
     export: { icon: Download, label: t('header.export'), onClick: exportConversation },
     'new-conversation': {
       icon: SquarePen,
-      label: t('header.newConversation'),
+      label: newConversationTitle,
       onClick: () => window.api.clearConversation()
     },
     history: { icon: History, label: t('history.title'), onClick: () => toggleHistory() },
@@ -126,7 +132,7 @@ export function AppHeader() {
   const overlayIds = controlsForSurface('overlay', ctx)
   const centerIds = controlsForSurface('center', ctx)
   const baseBtn =
-    'tip relative size-8 cursor-pointer rounded-[var(--r-control)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)]'
+    'app-toolbar-button tip relative size-8 cursor-pointer rounded-[var(--r-control)] text-[var(--text-secondary)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)]'
 
   const renderOverlay = (id: ControlId): ReactNode => {
     const c = registry[id]
@@ -147,9 +153,15 @@ export function AppHeader() {
   }
 
   return (
-    <header id="app-header" role="banner" className="flex items-center justify-between text-white">
-      <div className={`flex items-center gap-2.5 ${isMac ? 'pl-[78px]' : 'pl-4'}`}>
-        <div className="flex h-6 w-6 items-center justify-center rounded-[var(--r-control)] bg-[var(--accent-soft)]">
+    <header
+      id="app-header"
+      role="banner"
+      className="app-header-shell flex items-center justify-between text-white"
+    >
+      <div
+        className={`app-brand flex items-center gap-2.5 ${isMac && trafficLightMode !== 'hidden' ? 'pl-[78px]' : 'pl-4'}`}
+      >
+        <div className="app-brand-icon flex h-6 w-6 items-center justify-center rounded-[var(--r-control)] bg-[var(--accent-soft)]">
           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden="true">
             <defs>
               <clipPath id="hdrEclipse">
@@ -174,14 +186,14 @@ export function AppHeader() {
             />
           </svg>
         </div>
-        <div className="text-sm font-semibold leading-none tracking-tight text-[var(--text-primary)]">
+        <div className="app-brand-name text-sm font-semibold leading-none tracking-tight text-[var(--text-primary)]">
           {t('header.appName')}
         </div>
       </div>
       <div
         role="toolbar"
         aria-label={t('header.controlCenter')}
-        className={`actions flex items-center gap-0.5 pr-2 ${ignoreMouse ? 'pointer-events-none' : ''}`}
+        className={`app-toolbar actions flex items-center gap-0.5 pr-2 ${ignoreMouse ? 'pointer-events-none' : ''}`}
       >
         <EgressCapsule />
         {overlayIds.map(renderOverlay)}

@@ -5,16 +5,18 @@ import {
 } from '../src/renderer/src/lib/settings/main-process-sync'
 
 describe('pickMainProcessSettings', () => {
-  it('forwards non-empty settings including secrets', () => {
+  it('forwards main-process settings without exposing the answer-service key', () => {
     const picked = pickMainProcessSettings({
       apiBaseURL: 'https://api.example.com/v1',
       apiKey: 'sk-real-key',
       model: 'gpt-5-mini',
+      answerApiProtocol: 'responses',
       dashscopeApiKey: 'sk-asr-key'
     })
-    expect(picked.apiKey).toBe('sk-real-key')
+    expect('apiKey' in picked).toBe(false)
     expect(picked.dashscopeApiKey).toBe('sk-asr-key')
     expect(picked.model).toBe('gpt-5-mini')
+    expect(picked.answerApiProtocol).toBe('responses')
   })
 
   it('drops empty secrets so the write-back never wipes the stored key', () => {
@@ -33,6 +35,10 @@ describe('pickMainProcessSettings', () => {
   it('still forwards empty non-secret values (e.g. cleared base URL)', () => {
     const picked = pickMainProcessSettings({ apiBaseURL: '', model: 'x' })
     expect(picked.apiBaseURL).toBe('')
+  })
+
+  it('forwards the native traffic-light setting', () => {
+    expect(pickMainProcessSettings({ trafficLightMode: 'hover' }).trafficLightMode).toBe('hover')
   })
 
   it('skips undefined fields', () => {

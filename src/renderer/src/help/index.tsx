@@ -10,6 +10,7 @@ import {
   Mic
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useSettingValue } from '@/lib/store/settings'
 import { isMac } from '@/lib/utils/env'
 import { useTranslation } from 'react-i18next'
 import { HelpSection } from './components'
@@ -18,11 +19,12 @@ import { FAQ } from './FAQ'
 
 export default function HelpPage() {
   const { t } = useTranslation()
+  const trafficLightMode = useSettingValue('trafficLightMode')
   return (
     <>
       {/* Header */}
       <div id="app-header" className="flex items-center justify-between">
-        <div className={`actions ${isMac ? 'pl-[78px]' : 'pl-2'}`}>
+        <div className={`actions ${isMac && trafficLightMode !== 'hidden' ? 'pl-[78px]' : 'pl-2'}`}>
           <Button
             variant="ghost"
             asChild

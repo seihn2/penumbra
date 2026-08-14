@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { formatErrorForDisplay } from '../../../shared/error-display'
 
 interface Props {
   children: ReactNode
@@ -81,7 +82,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 margin: 0
               }}
             >
-              {this.state.error.name}: {this.state.error.message}
+              {formatErrorForDisplay(this.state.error)}
             </pre>
           )}
           <button

@@ -1,4 +1,3 @@
-import { useBodyOpacity } from './hooks/useBodyOpacity'
 import { useCoderPageState } from './hooks/useCoderPageState'
 import { useTranscriptionController } from './hooks/useTranscriptionController'
 
@@ -10,7 +9,6 @@ import { InterviewCoachPanel } from './interview/InterviewCoachPanel'
 import { HistoryPanel } from './HistoryPanel'
 
 export default function CoderPage() {
-  useBodyOpacity()
   useCoderPageState()
   useTranscriptionController()
 

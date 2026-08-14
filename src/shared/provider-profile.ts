@@ -1,3 +1,5 @@
+import type { AnswerApiProtocol } from './answer-api-protocol'
+
 /** Provider Profile: an inseparable bundle describing one AI provider config.
    The identity of a profile is derived from a fingerprint over its
    identity-defining fields (normalized endpoint + model + headers +
@@ -29,6 +31,7 @@ export interface ProviderProfile {
   /** Opaque reference/id to a secret. NEVER the raw key. */
   credentialRef: string
   model: string
+  protocol?: AnswerApiProtocol
   headers?: Record<string, string>
   capabilities?: ProviderCapabilities
   /** Per-profile cached model list (isolated per provider). */
@@ -43,6 +46,7 @@ export interface ProviderIdentity {
   endpoint: string
   credentialRef: string
   model: string
+  protocol?: AnswerApiProtocol
   headers?: Record<string, string>
 }
 
@@ -123,6 +127,7 @@ export function computeFingerprint(identity: ProviderIdentity): string {
     normalizeOrigin(identity.endpoint),
     identity.model,
     identity.credentialRef,
+    identity.protocol ?? '',
     serializeHeaders(identity.headers)
   ]
   return fnv1a(parts.join('\n'))

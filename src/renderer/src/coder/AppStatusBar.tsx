@@ -16,9 +16,10 @@ export function AppStatusBar() {
     closeDialog,
     submitQuestion
   } = useFollowUpQuestion()
+  const idle = !isReceivingSolution && !hasActiveConversation
 
   return (
-    <div className="workbench-statusbar">
+    <div className={`workbench-statusbar ${idle ? 'is-idle' : ''}`}>
       <div>
         <StatusBarLeft
           isReceivingSolution={isReceivingSolution}

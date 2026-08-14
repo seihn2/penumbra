@@ -11,6 +11,9 @@ import {
   Check,
   Trash2,
   BrainCircuit,
+  BookmarkCheck,
+  BookmarkPlus,
+  Mic2,
   Plus,
   ClipboardList,
   X
@@ -31,6 +34,7 @@ import {
 } from '../../../../shared/memory-profile'
 import MarkdownRenderer from '@/components/MarkdownRenderer'
 import { cn } from '@/lib/utils'
+import { Textarea } from '@/components/ui/textarea'
 import type { DebriefReport } from '../../../../shared/debrief-report'
 import { deriveLivePhase, type LiveSessionPhase } from '../../../../shared/live-session-state'
 import {
@@ -42,6 +46,9 @@ import {
 } from '../../../../shared/coach-layout'
 import { useLiveSnapshot } from '../hooks/useLiveSnapshot'
 import { useCaptureDiagnostics, formatElapsed } from '../hooks/useCaptureDiagnostics'
+import { StructuredInterviewAssist } from './StructuredInterviewAssist'
+import type { InterviewAnswerPolicy } from '../../../../shared/project-knowledge'
+import { collectSpokenInterviewAnswer } from '../../../../shared/interview-answer-memory'
 
 const priorityStyles = {
   high: 'border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--text-primary)]',
@@ -51,20 +58,21 @@ const priorityStyles = {
 
 // Priority → banner styling for stage suggestions.
 
-// Coach panel width is user-resizable within these bounds (fraction of the
-// window width) so it can't be dragged uselessly thin or hog the screen.
-const MIN_WIDTH_FRAC = 0.22
-const MAX_WIDTH_FRAC = 0.6
-const DEFAULT_WIDTH_PX = 360
-const PANEL_WIDTH_KEY = 'penumbra-coach-width'
+// The coach is the primary workspace during an interview, not a narrow sidebar.
+// Keep a useful slice of the answer canvas visible, but default the coach to a
+// little over half the window so prompts can breathe and structure can scan.
+const MIN_WIDTH_FRAC = 0.36
+const MAX_WIDTH_FRAC = 0.78
+const DEFAULT_WIDTH_FRAC = 0.54
+const PANEL_WIDTH_KEY = 'penumbra-coach-width-v2'
 
 const readPanelWidth = (): number => {
   try {
     const raw = localStorage.getItem(PANEL_WIDTH_KEY)
     const n = raw ? Number(raw) : NaN
-    return Number.isFinite(n) && n > 0 ? n : DEFAULT_WIDTH_PX
+    return Number.isFinite(n) && n > 0 ? n : window.innerWidth * DEFAULT_WIDTH_FRAC
   } catch {
-    return DEFAULT_WIDTH_PX
+    return window.innerWidth * DEFAULT_WIDTH_FRAC
   }
 }
 
@@ -83,6 +91,14 @@ export function InterviewCoachPanel() {
   const [collapsed, setCollapsed] = useState(false)
   const [panelWidth, setPanelWidth] = useState(() => readPanelWidth())
   const [pointsCopied, setPointsCopied] = useState(false)
+  const [savingAnswerPolicy, setSavingAnswerPolicy] = useState(false)
+  const [savedAnswerPolicyKey, setSavedAnswerPolicyKey] = useState<string | null>(null)
+  const [answerPolicyConflict, setAnswerPolicyConflict] = useState<{
+    key: string
+    policy: InterviewAnswerPolicy
+    answer: string
+  } | null>(null)
+  const [spokenAnswerDraft, setSpokenAnswerDraft] = useState<string | null>(null)
   // Index of the assist currently shown in the AI assist area. Browsing only
   // affects display; it never mutates the store.
   const [assistIndex, setAssistIndex] = useState(0)
@@ -98,12 +114,15 @@ export function InterviewCoachPanel() {
     translations,
     interviewCoach,
     assists,
+    detectedQuestion,
     assistLoading,
     liveAssist,
     summary,
     memoryCandidates
   } = useInterviewCoachPanelState()
   const coachEnabled = useSettingValue('interviewCoachEnabled')
+  const realtimeAssistEnabled = useSettingValue('realtimeAssistEnabled')
+  const proactiveAssistEnabled = useSettingValue('proactiveAssistEnabled')
   const { elapsedSeconds, chunks, level } = useCaptureDiagnostics(isTranscribing)
   const liveSnapshot = useLiveSnapshot(isTranscribing)
   const livePhase = deriveLivePhase(liveSnapshot)
@@ -142,7 +161,15 @@ export function InterviewCoachPanel() {
   // Show the panel for live coaching (when enabled and transcribing) or
   // whenever there are translations. With coaching off and no translations
   // there's nothing to show, so don't reserve the screen space.
-  const showCoach = coachEnabled && (isTranscribing || transcriptionText)
+  const panelEnabled = coachEnabled || realtimeAssistEnabled || proactiveAssistEnabled
+  const hasRetainedContent =
+    Boolean(transcriptionText) ||
+    detectedQuestion != null ||
+    assistLoading ||
+    Boolean(liveAssist) ||
+    assists.length > 0 ||
+    Boolean(summary)
+  const showCoach = panelEnabled && (isTranscribing || hasRetainedContent)
   if (!showCoach && translations.length === 0) return null
 
   const timeline = interviewCoach.turns
@@ -170,6 +197,12 @@ export function InterviewCoachPanel() {
   // Clamp the browse index so render is safe even before the effect runs.
   const safeAssistIndex = assists.length > 0 ? Math.min(assistIndex, assists.length - 1) : 0
   const currentAssist = assists[safeAssistIndex]
+  const detectedQuestionAnswered = detectedQuestion
+    ? assists.some(
+        (assist) =>
+          assist.turnId === detectedQuestion.turnId && assist.revision === detectedQuestion.revision
+      )
+    : false
   const copyCurrentPoints = async () => {
     const points = currentAssist?.points
     if (!points) return
@@ -181,6 +214,86 @@ export function InterviewCoachPanel() {
     } catch {
       // Clipboard write can fail (permissions / unsupported); skip success toast.
     }
+  }
+  const currentAnswerPolicyKey = currentAssist
+    ? `${currentAssist.question}\n${currentAssist.points}`
+    : null
+  const nextAssistTimestamp = assists[safeAssistIndex + 1]?.timestamp ?? Number.POSITIVE_INFINITY
+  const spokenAnswerText = currentAssist
+    ? collectSpokenInterviewAnswer({
+        turns: timeline,
+        questionTimestamp: currentAssist.timestamp,
+        nextQuestionTimestamp: nextAssistTimestamp
+      })
+    : ''
+  const spokenAnswerPolicyKey = currentAssist
+    ? `${currentAssist.question}\n${spokenAnswerDraft ?? spokenAnswerText}`
+    : null
+  const onPolicySaved = (key: string) => {
+    setSavedAnswerPolicyKey(key)
+    setAnswerPolicyConflict(null)
+    if (spokenAnswerPolicyKey === key) setSpokenAnswerDraft(null)
+  }
+  const persistAnswerPolicy = async (
+    answer: string,
+    key: string,
+    existingPolicyId?: string
+  ): Promise<boolean> => {
+    if (!currentAssist || !answer.trim()) return false
+    setSavingAnswerPolicy(true)
+    try {
+      await window.api.saveInterviewAnswerPolicy({
+        id: existingPolicyId,
+        question: currentAssist.question,
+        answer: answer.trim()
+      })
+      onPolicySaved(key)
+      toast.success(t('coach.answerPolicySaved'))
+      return true
+    } catch (error) {
+      toast.error(
+        t('coach.answerPolicySaveFailed', {
+          error: error instanceof Error ? error.message : 'unknown'
+        })
+      )
+      return false
+    } finally {
+      setSavingAnswerPolicy(false)
+    }
+  }
+  const proposeAnswerPolicy = async (answer: string, key: string): Promise<boolean> => {
+    if (!currentAssist || !answer.trim() || savingAnswerPolicy) return false
+    setSavingAnswerPolicy(true)
+    try {
+      const existing = await window.api.findInterviewAnswerPolicy(currentAssist.question)
+      if (existing && existing.answer.trim() !== answer.trim()) {
+        setAnswerPolicyConflict({ key, policy: existing, answer: answer.trim() })
+        return false
+      }
+      if (existing) {
+        onPolicySaved(key)
+        toast.success(t('coach.answerPolicyRemembered'))
+        return true
+      }
+    } catch (error) {
+      toast.error(
+        t('coach.answerPolicySaveFailed', {
+          error: error instanceof Error ? error.message : 'unknown'
+        })
+      )
+      return false
+    } finally {
+      setSavingAnswerPolicy(false)
+    }
+    return persistAnswerPolicy(answer, key)
+  }
+  const saveCurrentAnswerPolicy = async () => {
+    if (!currentAssist || !currentAnswerPolicyKey) return
+    await proposeAnswerPolicy(currentAssist.points, currentAnswerPolicyKey)
+  }
+  const saveSpokenAnswerPolicy = async () => {
+    if (!spokenAnswerDraft?.trim() || !spokenAnswerPolicyKey) return
+    await proposeAnswerPolicy(spokenAnswerDraft, spokenAnswerPolicyKey)
   }
   const clearSession = () => {
     useTranscriptionStore.getState().clearText()
@@ -280,16 +393,16 @@ export function InterviewCoachPanel() {
 
   return (
     <div
-      className="relative flex h-full shrink-0 flex-col overflow-hidden border-l border-[var(--hairline)] bg-[var(--surface-1)] text-[var(--text-primary)]"
+      className="interview-coach-shell relative flex h-full shrink-0 flex-col overflow-hidden border-l border-[var(--hairline)] bg-[var(--surface-1)] text-[var(--text-primary)]"
       style={{ width: `${clampPanelWidth(panelWidth)}px` }}
     >
       <div
         onMouseDown={startResize}
         title={t('coach.resizeHint')}
-        className="absolute left-0 top-0 z-10 h-full w-1.5 cursor-col-resize hover:bg-[var(--accent-soft)]"
+        className="interview-coach-resizer absolute left-0 top-0 z-10 h-full w-1.5 cursor-col-resize"
       />
-      <div className="flex shrink-0 select-none items-center justify-between border-b border-[var(--hairline)] px-4 py-3">
-        <div className="flex items-center gap-2">
+      <div className="interview-coach-header flex shrink-0 select-none items-center justify-between border-b border-[var(--hairline)] px-4 py-3">
+        <div className="interview-coach-title flex items-center gap-2">
           <MessageSquareText className="h-4 w-4 text-[var(--accent)]" />
           <div>
             <div className="flex items-center gap-1.5 text-sm font-semibold">
@@ -313,7 +426,7 @@ export function InterviewCoachPanel() {
           </div>
         </div>
         {showCoach && (
-          <div className="flex items-center gap-2">
+          <div className="interview-coach-tools flex items-center gap-2">
             {canExport && (
               <button
                 type="button"
@@ -366,7 +479,7 @@ export function InterviewCoachPanel() {
         <div className="flex min-h-0 flex-1 flex-col">
           {/* Compact status strip: secondary info (speaker / language / confidence
               / speaking share) compressed into a single row instead of large boxes. */}
-          <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-[var(--hairline)] px-4 py-2 text-[11px] text-[var(--text-tertiary)]">
+          <div className="interview-coach-status flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-[var(--hairline)] px-4 py-2 text-[11px] text-[var(--text-tertiary)]">
             {isTranscribing && (
               <span
                 className="flex items-center gap-1.5"
@@ -378,7 +491,7 @@ export function InterviewCoachPanel() {
                 <span className="tabular-nums">{chunks}</span>
                 <span className="relative h-1.5 w-8 overflow-hidden rounded-full bg-[var(--surface-3)]">
                   <span
-                    className="absolute inset-y-0 left-0 rounded-full bg-[var(--accent)] transition-[width] duration-100"
+                    className="absolute inset-y-0 left-0 rounded-full bg-[var(--accent-fill)] transition-[width] duration-100"
                     style={{ width: `${Math.min(100, Math.round(level * 200))}%` }}
                   />
                 </span>
@@ -408,7 +521,7 @@ export function InterviewCoachPanel() {
                 title={`${t('coach.speakingShare')}: ${t('coach.speakerCandidate')} ${candidatePct}% · ${t('coach.speakerInterviewer')} ${100 - candidatePct}%`}
               >
                 <span className="flex h-1.5 w-16 overflow-hidden rounded-full bg-[var(--surface-3)]">
-                  <span className="bg-[var(--accent)]" style={{ width: `${candidatePct}%` }} />
+                  <span className="bg-[var(--accent-fill)]" style={{ width: `${candidatePct}%` }} />
                   <span
                     className="bg-[var(--text-tertiary)]"
                     style={{ width: `${100 - candidatePct}%` }}
@@ -484,14 +597,14 @@ export function InterviewCoachPanel() {
           {/* Single-column tabbed body (coach-layout): one tab at a time with
               count badges. now = AI assist, transcript = live transcript,
               history = past answer points, later = suggestions/summary. */}
-          <div className="flex shrink-0 items-center gap-1 border-b border-[var(--hairline)] px-2 py-1.5">
+          <div className="interview-coach-tabs flex shrink-0 items-center gap-1 border-b border-[var(--hairline)] px-2 py-1.5">
             {TAB_ORDER.map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => switchTab(tab)}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-[var(--r-sm)] px-2.5 py-1 text-[11px] font-medium transition-colors',
+                  'interview-coach-tab flex items-center justify-center gap-1.5 rounded-[var(--r-sm)] px-2.5 py-1 text-[11px] font-medium transition-colors',
                   layout.activeTab === tab
                     ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
                     : 'text-[var(--text-secondary)] hover:bg-[var(--surface-3)]'
@@ -507,11 +620,11 @@ export function InterviewCoachPanel() {
             ))}
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="interview-coach-scroll min-h-0 flex-1 overflow-y-auto">
             {layout.activeTab === 'now' && (
-              <div className="space-y-3 px-3 py-2">
-                <section className="space-y-2">
-                  <div className="flex items-center justify-between">
+              <div className="interview-coach-now space-y-3 px-3 py-2">
+                <section className="interview-coach-answer space-y-2">
+                  <div className="interview-coach-answer-header flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs font-medium text-[var(--text-secondary)]">
                       <ListChecks className="h-3.5 w-3.5 text-[var(--accent)]" />
                       {t('coach.aiAssist')}
@@ -536,7 +649,7 @@ export function InterviewCoachPanel() {
                         type="button"
                         onClick={() => window.api.requestInterviewAssist()}
                         disabled={assistLoading}
-                        className="flex items-center gap-1 rounded-[var(--r-pill)] border border-[var(--accent-border)] bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] text-[var(--accent)] transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50"
+                        className="interview-coach-refresh flex items-center gap-1 rounded-[var(--r-pill)] border border-[var(--accent-border)] bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] text-[var(--accent)] transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50"
                       >
                         {assistLoading ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
@@ -547,14 +660,20 @@ export function InterviewCoachPanel() {
                       </button>
                     </div>
                   </div>
+                  {detectedQuestion && (
+                    <div className="coach-question-card">
+                      <div className="coach-question-label">{t('coach.detectedQuestion')}</div>
+                      <div className="coach-question-text">{detectedQuestion.question}</div>
+                    </div>
+                  )}
                   {assistLoading && liveAssist ? (
-                    <div className="rounded-[var(--r-control)] border border-[var(--accent-border)] bg-[var(--accent-soft)] p-3 text-xs leading-relaxed">
-                      <div className="text-xs text-[var(--text-primary)]">
-                        <MarkdownRenderer>{liveAssist}</MarkdownRenderer>
-                      </div>
+                    <StructuredInterviewAssist content={liveAssist} streaming />
+                  ) : detectedQuestion && !detectedQuestionAnswered ? (
+                    <div className="text-xs text-[var(--text-tertiary)]">
+                      {t('coach.detectedQuestionWaiting')}
                     </div>
                   ) : currentAssist ? (
-                    <div className="rounded-[var(--r-control)] border border-[var(--accent-border)] bg-[var(--accent-soft)] p-3 text-xs leading-relaxed">
+                    <div className="coach-answer-stack space-y-2">
                       {assists.length > 1 && (
                         <div className="mb-2 flex items-center justify-between">
                           <button
@@ -585,12 +704,108 @@ export function InterviewCoachPanel() {
                           </button>
                         </div>
                       )}
-                      <div className="mb-1 text-[10px] text-[var(--text-tertiary)]">
-                        {currentAssist.question.slice(0, 60)}
-                      </div>
-                      <div className="text-xs text-[var(--text-primary)]">
-                        <MarkdownRenderer>{currentAssist.points}</MarkdownRenderer>
-                      </div>
+                      <div className="coach-question-context">{currentAssist.question}</div>
+                      <StructuredInterviewAssist content={currentAssist.points} />
+                      <button
+                        type="button"
+                        onClick={saveCurrentAnswerPolicy}
+                        disabled={
+                          savingAnswerPolicy || savedAnswerPolicyKey === currentAnswerPolicyKey
+                        }
+                        className="flex w-full items-center justify-center gap-1.5 rounded-[var(--r-control)] border border-[var(--hairline)] bg-[var(--surface-2)] px-2.5 py-1.5 text-[11px] text-[var(--text-secondary)] transition-colors hover:border-[var(--accent-border)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] disabled:cursor-default disabled:opacity-70"
+                      >
+                        {savedAnswerPolicyKey === currentAnswerPolicyKey ? (
+                          <BookmarkCheck className="h-3.5 w-3.5 text-[var(--accent)]" />
+                        ) : savingAnswerPolicy ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <BookmarkPlus className="h-3.5 w-3.5" />
+                        )}
+                        {savedAnswerPolicyKey === currentAnswerPolicyKey
+                          ? t('coach.answerPolicyRemembered')
+                          : t('coach.rememberAnswerPolicy')}
+                      </button>
+                      {spokenAnswerText && spokenAnswerDraft === null && (
+                        <button
+                          type="button"
+                          onClick={() => setSpokenAnswerDraft(spokenAnswerText)}
+                          className="flex w-full items-center justify-center gap-1.5 rounded-[var(--r-control)] border border-[var(--hairline)] bg-[var(--surface-2)] px-2.5 py-1.5 text-[11px] text-[var(--text-secondary)] transition-colors hover:border-[var(--accent-border)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                        >
+                          <Mic2 className="h-3.5 w-3.5" />
+                          {t('coach.rememberSpokenAnswer')}
+                        </button>
+                      )}
+                      {spokenAnswerDraft !== null && (
+                        <div className="rounded-[var(--r-control)] border border-[var(--accent-border)] bg-[var(--surface-2)] p-2.5">
+                          <div className="text-[11px] font-medium text-[var(--text-primary)]">
+                            {t('coach.spokenAnswerTitle')}
+                          </div>
+                          <div className="mt-1 text-[10px] text-[var(--text-tertiary)]">
+                            {t('coach.spokenAnswerDesc')}
+                          </div>
+                          <Textarea
+                            value={spokenAnswerDraft}
+                            onChange={(event) => setSpokenAnswerDraft(event.target.value)}
+                            rows={5}
+                            className="mt-2 border-[var(--hairline)] bg-[var(--surface-3)] text-xs text-[var(--text-primary)]"
+                          />
+                          <div className="mt-2 flex justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setSpokenAnswerDraft(null)}
+                              className="rounded-[var(--r-sm)] px-2 py-1 text-[10px] text-[var(--text-secondary)] hover:bg-[var(--surface-3)]"
+                            >
+                              {t('settings.projectKnowledge.cancel')}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void saveSpokenAnswerPolicy()}
+                              disabled={savingAnswerPolicy || !spokenAnswerDraft.trim()}
+                              className="rounded-[var(--r-sm)] bg-[var(--accent-fill)] px-2 py-1 text-[10px] text-[var(--accent-foreground)] disabled:opacity-50"
+                            >
+                              {t('coach.saveSpokenAnswer')}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {answerPolicyConflict &&
+                        (answerPolicyConflict.key === currentAnswerPolicyKey ||
+                          answerPolicyConflict.key === spokenAnswerPolicyKey) && (
+                          <div className="rounded-[var(--r-control)] border border-[var(--accent-border)] bg-[var(--accent-soft)] p-2.5">
+                            <div className="text-[11px] font-medium text-[var(--text-primary)]">
+                              {t('coach.answerPolicyConflict')}
+                            </div>
+                            <div className="mt-1 text-[10px] text-[var(--text-tertiary)]">
+                              {t('coach.answerPolicyPrevious')}
+                            </div>
+                            <div className="mt-1 max-h-20 overflow-auto whitespace-pre-wrap rounded-[var(--r-sm)] bg-[var(--surface-2)] p-2 text-[10px] leading-relaxed text-[var(--text-secondary)]">
+                              {answerPolicyConflict.policy.answer}
+                            </div>
+                            <div className="mt-2 flex justify-end gap-1">
+                              <button
+                                type="button"
+                                onClick={() => setAnswerPolicyConflict(null)}
+                                className="rounded-[var(--r-sm)] px-2 py-1 text-[10px] text-[var(--text-secondary)] hover:bg-[var(--surface-3)]"
+                              >
+                                {t('coach.answerPolicyKeepPrevious')}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void persistAnswerPolicy(
+                                    answerPolicyConflict.answer,
+                                    answerPolicyConflict.key,
+                                    answerPolicyConflict.policy.id
+                                  )
+                                }
+                                disabled={savingAnswerPolicy}
+                                className="rounded-[var(--r-sm)] bg-[var(--accent-fill)] px-2 py-1 text-[10px] text-[var(--accent-foreground)] disabled:opacity-50"
+                              >
+                                {t('coach.answerPolicyReplace')}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                     </div>
                   ) : (
                     <div className="text-xs text-[var(--text-tertiary)]">
@@ -654,9 +869,7 @@ export function InterviewCoachPanel() {
                       <div className="mb-1 text-[10px] text-[var(--text-tertiary)]">
                         {assist.question.slice(0, 60)}
                       </div>
-                      <div className="text-[var(--text-primary)]">
-                        <MarkdownRenderer>{assist.points}</MarkdownRenderer>
-                      </div>
+                      <StructuredInterviewAssist content={assist.points} compact />
                     </div>
                   ))
                 ) : (
@@ -823,8 +1036,8 @@ const PHASE_LABEL_KEY: Record<LiveSessionPhase, string> = {
 // while the candidate is answering, accent otherwise.
 const PHASE_DOT: Record<LiveSessionPhase, string> = {
   idle: 'bg-[var(--text-tertiary)]',
-  listening: 'bg-[var(--accent)]',
-  preparing: 'bg-[var(--accent)]',
+  listening: 'bg-[var(--accent-fill)]',
+  preparing: 'bg-[var(--accent-fill)]',
   ready: 'bg-emerald-500',
   'recording-answer': 'bg-amber-500',
   'audio-interrupted': 'bg-red-500'

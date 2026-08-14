@@ -581,72 +581,94 @@ function EmptyState() {
   const takeScreenshotShortcut = useShortcut('takeScreenshot')
   const toggleTranscriptionShortcut = useShortcut('toggleTranscription')
   const isTranscribing = useTranscriptionStore((state) => state.isTranscribing)
+  const hasInterviewSession = useTranscriptionStore(
+    (state) =>
+      state.isTranscribing ||
+      Boolean(state.transcriptionText) ||
+      state.detectedQuestion !== null ||
+      state.assists.length > 0
+  )
   const toggleTranscription = useTranscriptionToggle()
 
+  if (hasInterviewSession) {
+    return (
+      <div className="chat-empty interview-session-stage">
+        <div className="interview-session-copy">
+          <div className="interview-session-kicker">
+            <span className={isTranscribing ? 'is-live' : ''} aria-hidden="true" />
+            {isTranscribing ? t('coach.recording') : t('coach.phase.ready')}
+          </div>
+          <h1>{t('coach.title')}</h1>
+          <p>{t('coach.subtitle')}</p>
+          <div className="interview-session-shortcut">
+            <span>{isTranscribing ? t('transcription.stopBtn') : t('transcription.startBtn')}</span>
+            <ShortcutRenderer
+              shortcut={toggleTranscriptionShortcut?.key ?? ''}
+              className="workbench-shortcut-key"
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="chat-empty px-4">
-      <div className="max-w-xl space-y-1.5">
-        <p className="text-lg font-semibold tracking-tight text-[var(--text-primary)]">
-          {t('workbench.startTitle')}
-        </p>
-        <p className="text-sm leading-relaxed text-[var(--text-tertiary)]">
-          {t('workbench.startDesc')}
-        </p>
+    <div className="chat-empty home-stage">
+      <div className="home-intro">
+        <div className="home-brandline">
+          <span className="home-brand-mark" aria-hidden="true" />
+          <span>{t('header.appName')}</span>
+        </div>
+        <h1>{t('workbench.startTitle')}</h1>
+        <p>{t('workbench.startDesc')}</p>
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-3 text-left md:grid-cols-2">
-        <div className="relative flex min-h-40 flex-col rounded-[var(--r-card)] border border-[var(--accent-border)] bg-[var(--accent-soft)] p-4">
-          <span className="absolute right-3 top-3 rounded-[var(--r-pill)] bg-[var(--accent)] px-2 py-0.5 text-[10px] font-semibold text-black">
-            {t('workbench.recommended')}
-          </span>
-          <span className="mb-4 flex h-9 w-9 items-center justify-center rounded-[var(--r-control)] bg-[var(--surface-1)] text-[var(--accent)]">
-            <ScanLine className="h-[18px] w-[18px]" />
-          </span>
-          <div className="pr-12">
-            <p className="text-sm font-semibold text-[var(--text-primary)]">
-              {t('workbench.emptyAnswerTitle')}
-            </p>
-            <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-secondary)]">
-              {t('workbench.emptyAnswerDesc')}
-            </p>
+      <div className="home-actions">
+        <article className="home-action home-action-primary">
+          <div className="home-action-topline">
+            <span className="home-action-icon">
+              <ScanLine className="h-[18px] w-[18px]" />
+            </span>
+            <span className="home-action-index" aria-hidden="true">
+              01
+            </span>
           </div>
-          <div className="mt-auto flex items-center justify-between gap-2 pt-4 text-[11px] text-[var(--text-tertiary)]">
+          <div className="home-action-copy">
+            <h2>{t('workbench.emptyAnswerTitle')}</h2>
+            <p>{t('workbench.emptyAnswerDesc')}</p>
+          </div>
+          <div className="home-action-footer">
             <span>{t('workbench.startScreenshotHint')}</span>
             <ShortcutRenderer
               shortcut={takeScreenshotShortcut?.key ?? ''}
               className="workbench-shortcut-key"
             />
           </div>
-        </div>
+        </article>
 
         <button
           type="button"
           onClick={() => void toggleTranscription()}
-          className={`flex min-h-40 flex-col rounded-[var(--r-card)] border p-4 text-left transition-colors ${
-            isTranscribing
-              ? 'border-red-500/40 bg-red-500/10 hover:bg-red-500/15'
-              : 'border-[var(--hairline)] bg-[var(--surface-2)] hover:border-[var(--accent-border)] hover:bg-[var(--surface-3)]'
-          }`}
+          className={`home-action home-action-button ${isTranscribing ? 'is-live' : ''}`}
           aria-label={isTranscribing ? t('transcription.stopBtn') : t('transcription.startBtn')}
         >
-          <span
-            className={`mb-4 flex h-9 w-9 items-center justify-center rounded-[var(--r-control)] ${
-              isTranscribing
-                ? 'bg-red-500/15 text-red-400'
-                : 'bg-[var(--accent-soft)] text-[var(--accent)]'
-            }`}
-          >
-            {isTranscribing ? (
-              <Square className="h-4 w-4" />
-            ) : (
-              <Mic className="h-[18px] w-[18px]" />
-            )}
-          </span>
-          <p className="text-sm font-semibold text-[var(--text-primary)]">{t('coach.title')}</p>
-          <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-secondary)]">
-            {t('coach.subtitle')}
-          </p>
-          <div className="mt-auto flex items-center justify-between gap-2 pt-4 text-[11px] text-[var(--text-tertiary)]">
+          <div className="home-action-topline">
+            <span className="home-action-icon">
+              {isTranscribing ? (
+                <Square className="h-4 w-4" />
+              ) : (
+                <Mic className="h-[18px] w-[18px]" />
+              )}
+            </span>
+            <span className="home-action-index" aria-hidden="true">
+              02
+            </span>
+          </div>
+          <div className="home-action-copy">
+            <h2>{t('coach.title')}</h2>
+            <p>{t('coach.subtitle')}</p>
+          </div>
+          <div className="home-action-footer">
             <span>{isTranscribing ? t('transcription.stopBtn') : t('transcription.startBtn')}</span>
             <ShortcutRenderer
               shortcut={toggleTranscriptionShortcut?.key ?? ''}

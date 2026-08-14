@@ -172,7 +172,7 @@ function BriefList({
   if (items.length === 0) return null
   const dot =
     tone === 'accent'
-      ? 'bg-[var(--accent)]'
+      ? 'bg-[var(--accent-fill)]'
       : tone === 'warn'
         ? 'bg-amber-500'
         : 'bg-[var(--text-tertiary)]'

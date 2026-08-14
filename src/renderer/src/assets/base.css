@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
+@import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -8,38 +8,77 @@
    to the slate-950/cyan palette used across the custom workbench classes so
    shadcn primitives (button, select, popover, command, dialog) blend in. */
 :root {
-  --background: oklch(0.16 0.01 250);
+  --window-opacity: 0.8;
+  --content-opacity: 1;
+  --icon-opacity: 1;
+  --ui-font-size: 16px;
+
+  --background-base: oklch(0.16 0.01 250);
+  --background: color-mix(
+    in srgb,
+    var(--background-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
   --foreground: oklch(0.93 0.005 250);
-  --card: oklch(0.21 0.01 250);
+  --card-base: oklch(0.21 0.01 250);
+  --card: color-mix(in srgb, var(--card-base) calc(var(--window-opacity) * 100%), transparent);
   --card-foreground: oklch(0.93 0.005 250);
-  --popover: oklch(0.22 0.01 250);
+  --popover-base: oklch(0.22 0.01 250);
+  --popover: color-mix(
+    in srgb,
+    var(--popover-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
   --popover-foreground: oklch(0.93 0.005 250);
   --primary: oklch(0.68 0.11 240);
   --primary-foreground: oklch(0.16 0.01 250);
-  --secondary: oklch(0.27 0.01 250);
+  --secondary-base: oklch(0.27 0.01 250);
+  --secondary: color-mix(
+    in srgb,
+    var(--secondary-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
   --secondary-foreground: oklch(0.93 0.005 250);
-  --muted: oklch(0.25 0.008 250);
+  --muted-base: oklch(0.25 0.008 250);
+  --muted: color-mix(in srgb, var(--muted-base) calc(var(--window-opacity) * 100%), transparent);
   --muted-foreground: oklch(0.66 0.01 250);
   --accent: oklch(0.27 0.01 250);
   --accent-foreground: oklch(0.93 0.005 250);
   --destructive: oklch(0.62 0.2 25);
   --destructive-foreground: oklch(0.95 0.01 250);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.68 0.11 240);
+  --border-base: oklch(1 0 0 / 8%);
+  --border: color-mix(in srgb, var(--border-base) calc(var(--window-opacity) * 100%), transparent);
+  --input-base: oklch(1 0 0 / 12%);
+  --input: color-mix(in srgb, var(--input-base) calc(var(--window-opacity) * 100%), transparent);
+  --ring: var(--accent-border);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.625rem;
-  --sidebar: oklch(0.21 0.01 250);
+  --sidebar-base: oklch(0.21 0.01 250);
+  --sidebar: color-mix(
+    in srgb,
+    var(--sidebar-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
   --sidebar-foreground: oklch(0.93 0.005 250);
   --sidebar-primary: oklch(0.68 0.11 240);
   --sidebar-primary-foreground: oklch(0.16 0.01 250);
-  --sidebar-accent: oklch(0.27 0.01 250);
+  --sidebar-accent-base: oklch(0.27 0.01 250);
+  --sidebar-accent: color-mix(
+    in srgb,
+    var(--sidebar-accent-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
   --sidebar-accent-foreground: oklch(0.93 0.005 250);
-  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-border-base: oklch(1 0 0 / 8%);
+  --sidebar-border: color-mix(
+    in srgb,
+    var(--sidebar-border-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
   --sidebar-ring: oklch(0.68 0.11 240);
 }
 
@@ -89,36 +128,106 @@
    glows, gradients or stacked blur. A single accent color does the work. */
 :root {
   /* Solid surfaces (flat tints, no gradient/glow). */
-  --app-bg: #0b0d10;
-  --surface-1: #131619;
-  --surface-2: #181c20;
-  --surface-3: #1f242a;
-  --hairline: rgba(255, 255, 255, 0.08);
-  --hairline-strong: rgba(255, 255, 255, 0.12);
+  --app-bg-base: #0b0d10;
+  --surface-1-base: #13171b;
+  --surface-2-base: #181d22;
+  --surface-3-base: #20262d;
+  --surface-raised-base: #252c34;
+  --hairline-base: rgba(255, 255, 255, 0.08);
+  --hairline-strong-base: rgba(255, 255, 255, 0.12);
+  --app-bg: color-mix(in srgb, var(--app-bg-base) calc(var(--window-opacity) * 100%), transparent);
+  --surface-1: color-mix(
+    in srgb,
+    var(--surface-1-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --surface-2: color-mix(
+    in srgb,
+    var(--surface-2-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --surface-3: color-mix(
+    in srgb,
+    var(--surface-3-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --surface-raised: color-mix(
+    in srgb,
+    var(--surface-raised-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --hairline: color-mix(
+    in srgb,
+    var(--hairline-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --hairline-strong: color-mix(
+    in srgb,
+    var(--hairline-strong-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
 
   /* Text scale. */
-  --text-primary: #e8eaed;
-  --text-secondary: #9aa3ad;
-  --text-tertiary: #6b747e;
+  --text-primary: #eef1f3;
+  --text-secondary: #a5aeb8;
+  --text-tertiary: #707a85;
 
   /* Single accent. */
   --accent: #4aa3df;
-  --accent-soft: rgba(74, 163, 223, 0.14);
-  --accent-border: rgba(74, 163, 223, 0.35);
+  --accent-soft-base: rgba(74, 163, 223, 0.12);
+  --accent-border-base: rgba(74, 163, 223, 0.3);
+  --accent-fill: color-mix(in srgb, var(--accent) calc(var(--window-opacity) * 100%), transparent);
+  --accent-soft: color-mix(
+    in srgb,
+    var(--accent-soft-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --accent-border: color-mix(
+    in srgb,
+    var(--accent-border-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
   /* Hover fill for accent buttons — derived from --accent so it tracks the
      custom theme color (brightness() would distort dark/light accents). */
-  --accent-hover: color-mix(in srgb, var(--accent) 22%, transparent);
+  --accent-hover-base: color-mix(in srgb, var(--accent) 22%, transparent);
+  --accent-hover: color-mix(
+    in srgb,
+    var(--accent-hover-base) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --destructive-fill: color-mix(
+    in srgb,
+    var(--destructive) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --scrollbar-thumb: color-mix(
+    in srgb,
+    rgba(148, 163, 184, 0.35) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --scrollbar-thumb-hover: color-mix(
+    in srgb,
+    rgba(148, 163, 184, 0.55) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --window-shadow-color: color-mix(
+    in srgb,
+    rgba(0, 0, 0, 0.3) calc(var(--window-opacity) * 100%),
+    transparent
+  );
+  --shadow-soft: 0 18px 48px var(--window-shadow-color);
+  --shadow-lifted: 0 12px 28px color-mix(in srgb, var(--window-shadow-color) 72%, transparent);
 
   /* Point shadcn's primary/ring at the accent so every shadcn component
      (switch, button, checkbox, slider, input selection) follows the custom
      theme color globally — not just the components we styled by hand. */
   --primary: var(--accent);
-  --ring: var(--accent);
+  --ring: var(--accent-border);
 
   /* Radius scale: small / card / control / pill. */
   --r-sm: 6px;
-  --r-card: 10px;
-  --r-control: 8px;
+  --r-card: 14px;
+  --r-control: 9px;
   --r-pill: 999px;
 
   /* Spacing rhythm. */
@@ -130,14 +239,14 @@
      with CJK fallbacks (PingFang / Microsoft YaHei). */
   --font-ui:
     -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI',
-    'Helvetica Neue', system-ui, 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB',
-    sans-serif;
+    'Helvetica Neue', system-ui, 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
   --font-mono:
-    'SF Mono', ui-monospace, 'JetBrains Mono', 'Menlo', 'Cascadia Code', 'Cascadia Mono',
-    Consolas, monospace;
+    'SF Mono', ui-monospace, 'JetBrains Mono', 'Menlo', 'Cascadia Code', 'Cascadia Mono', Consolas,
+    monospace;
 }
 
 html {
+  font-size: var(--ui-font-size, 16px);
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -146,7 +255,7 @@ html {
 /* Accessibility baseline (P1#33). A visible focus ring for keyboard users on
    every interactive element (mouse focus stays quiet via :focus-visible). */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--accent, #4aa3df);
+  outline: 2px solid var(--accent-border);
   outline-offset: 2px;
   border-radius: 3px;
 }

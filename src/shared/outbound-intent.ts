@@ -8,7 +8,14 @@
    Callers must supply `id`/`at` explicitly: this module never touches
    Date.now() or Math.random() so it stays deterministic and testable. */
 
-export type DataCategory = 'audio' | 'screenshot' | 'transcript' | 'profile' | 'prompt' | 'other'
+export type DataCategory =
+  | 'audio'
+  | 'screenshot'
+  | 'transcript'
+  | 'profile'
+  | 'knowledge'
+  | 'prompt'
+  | 'other'
 
 export interface OutboundIntent {
   id: string

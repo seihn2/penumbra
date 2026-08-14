@@ -282,9 +282,26 @@ const en: TranslationSchema = {
     suggestions: 'Suggestions',
     aiAssist: 'Live AI Assist',
     askAi: 'Ask AI',
+    detectedQuestion: 'Detected question',
+    detectedQuestionWaiting: 'Preparing answer points for this question…',
     aiAssistLoading: 'Generating answer points…',
     aiAssistEmpty:
       'Answer points appear automatically after the interviewer asks; or tap "Ask AI".',
+    assist: {
+      opening: 'Say this first',
+      path: 'Answer path',
+      evidence: 'Project evidence',
+      followUp: 'Likely follow-ups',
+      avoid: 'Avoid',
+      kind: {
+        project: 'Project deep dive',
+        behavioral: 'Behavioral',
+        'system-design': 'System design',
+        algorithm: 'Algorithm',
+        concept: 'Concept',
+        general: 'General'
+      }
+    },
     topicSummary: 'Topic Summary',
     exportTranscript: 'Export interview record',
     exported: 'Interview record exported',
@@ -297,6 +314,19 @@ const en: TranslationSchema = {
     speakerUnknown: 'Unknown',
     copyPoints: 'Copy points',
     pointsCopied: 'Copied',
+    rememberAnswerPolicy: 'Use this wording next time',
+    answerPolicyRemembered: 'Wording saved',
+    answerPolicySaved: 'Saved. Similar questions will use this wording first.',
+    answerPolicySaveFailed: 'Could not save: {{error}}',
+    answerPolicyConflict: 'A similar question already has approved wording',
+    answerPolicyPrevious: 'Currently saved wording',
+    answerPolicyKeepPrevious: 'Keep previous',
+    answerPolicyReplace: 'Replace with this answer',
+    rememberSpokenAnswer: 'Remember what I just said',
+    spokenAnswerTitle: 'Confirm my actual answer path',
+    spokenAnswerDesc:
+      'This is your transcribed answer. Fix any ASR errors, then save it as the preferred wording for similar questions.',
+    saveSpokenAnswer: 'Save my answer',
     prevPoint: 'Previous',
     nextPoint: 'Next',
     pointIndex: '{{current}}/{{total}}',
@@ -382,11 +412,37 @@ const en: TranslationSchema = {
     model: {
       title: 'Model Service',
       desc: 'Configure an OpenAI-compatible model service for solving, follow-ups and live translation.',
+      profile: 'Service Profile',
+      profileDesc:
+        'Each profile keeps its endpoint, model, account model cache, and encrypted key separate.',
+      profileName: 'Profile Name',
+      profileNameDesc: 'Use a recognizable name such as OpenAI, DeepSeek, or Company Gateway.',
+      addProfile: 'Add service profile',
+      deleteProfile: 'Delete current profile',
+      deleteProfileConfirm: 'Delete “{{name}}” and its saved key?',
+      profileAdded: 'Answer service profile added',
+      profileDeleted: 'Answer service profile deleted',
       baseUrlDesc:
         'e.g. https://api.siliconflow.cn/v1; leave empty to use the default OpenAI-compatible endpoint.',
       baseUrlPlaceholder: 'Optional, defaults to OpenAI API',
       presetPlaceholder: 'Pick a provider',
+      protocolLabel: 'API Protocol',
+      protocolDesc:
+        'Auto picks the best default for the provider and only switches before any answer text is emitted.',
+      protocolAuto: 'Auto (recommended)',
+      protocolResponses: 'Responses API',
+      protocolChat: 'Chat Completions',
+      protocolAnthropic: 'Anthropic Messages',
       apiKeyPlaceholder: 'Enter API Key',
+      apiKeyReplacePlaceholder: 'Enter a new key to replace the saved key',
+      keyStored: 'Encrypted key saved ····{{suffix}}. The raw key is not stored in app settings.',
+      keyNotStored: 'No key is saved for this profile.',
+      saveKey: 'Save Key',
+      replaceKey: 'Replace Key',
+      deleteKey: 'Delete Key',
+      keySaved: 'Key encrypted and saved',
+      keySaveFail: 'Could not save the key in system secure storage.',
+      keyDeleted: 'Key deleted',
       modelLabel: 'Answer model',
       modelDesc:
         'Start with common models for this provider. After you enter a key, account models load automatically. Use a Vision model for screenshots.',
@@ -409,10 +465,10 @@ const en: TranslationSchema = {
       testFail: 'Connection failed: {{error}}',
       refresh: 'Reload account models',
       fetching: 'Loading models available to this key…',
-      fetched: 'Loaded {{count}} account models.',
-      fetchHint: 'Account models load automatically after you enter a key.',
-      fetchAutoFailed: 'Account models could not be loaded. Use refresh to retry.',
-      catalogUpdated: 'Common list updated {{date}}.',
+      fetched: 'Updated {{count}} account models.',
+      cached: '{{count}} account models cached; they reload only when you click refresh.',
+      fetchHint: 'Click refresh when you want to load account models.',
+      fetchFailed: 'Could not load account models. Click refresh to retry.',
       fetchOk: 'Loaded {{count}} account models',
       fetchFail: 'Failed to load models: {{error}}'
     },
@@ -439,9 +495,9 @@ const en: TranslationSchema = {
       coachEnabled: 'Interview Practice Assistant',
       coachEnabledDesc:
         'Detects speaker and interview stage from live transcription and gives structured answer suggestions.',
-      realtimeAssist: 'Live AI Assist',
+      realtimeAssist: 'Detect New Questions and Generate Answer Prompts',
       realtimeAssistDesc:
-        'Automatically calls the AI for answer points after the interviewer asks (uses more tokens; can be turned off, or triggered manually via "Ask AI").',
+        'Continuously detects new interviewer questions and generates answer points after they finish speaking (uses more tokens; you can also trigger it with "Ask AI").',
       proactiveAssist: 'Proactive Live Coaching',
       proactiveAssistDesc:
         'No question or keypress needed — every ~20s it proactively suggests, based on where the conversation is going: your résumé projects, relevant SOTA tech, answer points and good questions to ask back (uses the most tokens; best for practice).',
@@ -495,7 +551,7 @@ const en: TranslationSchema = {
     },
     appearance: {
       title: 'Appearance',
-      desc: 'Control overall, window background and text opacity separately.',
+      desc: 'Adjust interface text, window controls and four independent opacity layers.',
       accentColor: 'Accent color',
       accentColorDesc: 'Customize the UI accent — affects buttons, highlights and hints.',
       accentColorCustom: 'Custom color',
@@ -507,10 +563,31 @@ const en: TranslationSchema = {
       windowOpacityDesc: 'Background/panels only. At fully transparent, text floats on the window.',
       textOpacity: 'Text Opacity',
       textOpacityDesc: 'Text only, background unaffected.',
+      iconOpacity: 'Icon Opacity',
+      iconOpacityDesc:
+        'Buttons and status icons only; text, backgrounds and screenshots stay unchanged.',
       transparent: 'Transparent',
       opaque: 'Opaque',
       uiLanguage: 'Interface Language',
       uiLanguageDesc: 'Switch the language of the application interface.',
+      uiFontSize: 'Interface Font Size',
+      uiFontSizeDesc: 'Adjust navigation, settings and general UI text; answers stay independent.',
+      codeBlockTheme: 'Code Block Style',
+      codeBlockThemeDesc:
+        'Choose the code surface contrast; Soft avoids a conspicuous pure-black block.',
+      codeTheme: {
+        soft: 'Soft (recommended)',
+        light: 'Light',
+        dark: 'Dark'
+      },
+      trafficLightMode: 'Window Controls',
+      trafficLightModeDesc:
+        'Keep macOS controls out of sight until the pointer reaches the top-left corner.',
+      trafficLights: {
+        hover: 'Show on hover (recommended)',
+        always: 'Always show',
+        hidden: 'Always hide'
+      },
       reduceMotion: 'Reduce motion',
       reduceMotionDesc: 'Tone down interface animations for fewer distractions during interviews.',
       motion: {
@@ -577,6 +654,108 @@ const en: TranslationSchema = {
       previewDesc: 'This is the exact text appended to the AI prompt (from the active profile).',
       previewEmpty: '(The active profile is empty — fill the fields above to see it here)'
     },
+    projectKnowledge: {
+      title: 'Project Knowledge',
+      desc: 'Ground answers in code you actually built and wording you explicitly approved.',
+      sourcesTitle: 'Local repositories',
+      sourcesDesc:
+        'Index source, tests, and docs; retrieve only snippets relevant to the current question.',
+      import: 'Add repository',
+      loading: 'Loading project knowledge…',
+      emptyProjects:
+        'No project added yet. Select a local repository to ground project answers in real implementation details.',
+      projectStats: '{{files}} files · {{chunks}} snippets',
+      sourceGraphStats: '{{symbols}} symbols · {{relations}} source relationships mapped',
+      updatedAt: 'Updated {{time}}',
+      reindex: 'Reindex',
+      remove: 'Remove',
+      importSuccess: 'Project indexed',
+      reindexSuccess: 'Project index updated',
+      removeSuccess: 'Project index removed',
+      actionFailed: 'Action failed: {{error}}',
+      policiesTitle: 'Approved answer wording',
+      policiesDesc:
+        'Wording you approved from live assistance. Similar questions reuse it to stay consistent.',
+      emptyPolicies:
+        'No wording approved yet. On a useful live answer, choose “Use this wording next time”.',
+      edit: 'Edit',
+      save: 'Save',
+      cancel: 'Cancel',
+      delete: 'Delete',
+      saved: 'Answer wording saved',
+      deleted: 'Answer wording deleted',
+      required: 'Question and answer are both required',
+      removeConfirm: 'This removes only the local index, not your source code. Continue?',
+      deletePolicyConfirm: 'Similar questions will stop using this wording. Continue?',
+      materials: {
+        title: 'Résumé, chats, and project materials',
+        desc: 'Chunk and label files as résumé context, user voice, project facts, or references; retrieve only relevant passages.',
+        import: 'Add material',
+        imported: 'Material indexed',
+        reindexed: 'Material index updated',
+        removed: 'Material index removed',
+        removeConfirm: 'This removes only the local index, not the original file. Continue?',
+        stats: '{{chunks}} snippets · updated {{time}}',
+        empty: 'Add PDF, Markdown, TXT, or JSON résumés, chat exports, and project documents.'
+      },
+      external: {
+        title: 'External Knowledge API',
+        desc: 'Connect an existing knowledge base and declare whether it contains project facts, résumé context, user voice, or reference designs.',
+        add: 'Connect API',
+        name: 'Source name',
+        namePlaceholder: 'e.g. Project documentation',
+        role: 'Evidence role',
+        endpoint: 'Retrieval endpoint',
+        protocol: 'API protocol',
+        auth: 'Authentication',
+        apiKey: 'API Key',
+        keyPlaceholder: 'Enter the knowledge API key',
+        keyKeepPlaceholder: 'Leave blank to keep the saved key',
+        headerName: 'Authentication header',
+        namespace: 'Space / project ID',
+        namespacePlaceholder: 'Optional',
+        timeout: 'Live timeout (ms)',
+        advanced: 'Advanced field mapping',
+        queryField: 'Query field',
+        limitField: 'Limit field',
+        namespaceField: 'Namespace field',
+        useInInterview: 'Use this source during interviews',
+        save: 'Save source',
+        required: 'Source name and endpoint are required',
+        saved: 'Knowledge API saved',
+        enabled: 'Knowledge source enabled',
+        disabled: 'Knowledge source disabled',
+        test: 'Test connection',
+        testSuccess: 'Connected and received {{count}} evidence item(s)',
+        testFailed: 'Connection failed: {{error}}',
+        deleteConfirm: 'This also deletes the API key stored for this source. Continue?',
+        deleted: 'Knowledge source and key deleted',
+        empty: 'No external source yet. Connect Dify or a generic JSON retrieval API.',
+        noKeyNeeded: 'No key required',
+        keySaved: 'Key saved ····{{suffix}}',
+        keyMissing: 'Key missing',
+        lastTestOk: 'Passed {{time}} · {{count}} item(s)',
+        lastTestFailed: 'Failed {{time}}',
+        roles: {
+          'project-fact': 'Project facts',
+          'candidate-profile': 'Résumé context',
+          'user-voice': 'User voice',
+          reference: 'Reference design'
+        },
+        protocols: {
+          'generic-json': 'Generic JSON retrieval',
+          dify: 'Dify knowledge base'
+        },
+        authTypes: {
+          none: 'No authentication',
+          bearer: 'Bearer token',
+          'x-api-key': 'X-API-Key',
+          'custom-header': 'Custom header'
+        }
+      },
+      privacyNote:
+        'The index stays on this device. Only a few snippets relevant to the current question are sent to your configured answer model.'
+    },
     privacy: {
       title: 'Privacy & Security',
       desc: 'Local config, permissions and platform display options.',
@@ -595,7 +774,9 @@ const en: TranslationSchema = {
       stealthOff: 'Screen-share stealth off',
       hideDock: 'Hide Dock Icon',
       hideDockDesc:
-        'When enabled, hides from the Dock and Cmd+Tab; the window can only be summoned via shortcut.'
+        'When enabled, hides from the Dock and Cmd+Tab; use the shortcut beside it to restore the icon.',
+      dockHidden: 'Dock icon hidden',
+      dockShown: 'Dock icon shown'
     }
   },
   help: {
@@ -690,9 +871,21 @@ const en: TranslationSchema = {
       label: 'Mouse Passthrough',
       desc: 'When enabled, clicks pass through the window to whatever is behind it'
     },
+    newConversation: {
+      label: 'New Conversation',
+      desc: 'Clear the current conversation and place the cursor in the composer'
+    },
+    focusComposer: {
+      label: 'Focus Composer',
+      desc: 'Reveal the window, disable mouse passthrough, and start typing'
+    },
     toggleContentProtection: {
       label: 'Toggle Screen-Share Stealth',
       desc: 'One key to turn window invisibility for recording/sharing on or off'
+    },
+    toggleDockIcon: {
+      label: 'Hide/Show Dock Icon',
+      desc: 'Toggle whether Penumbra appears in the Dock and Cmd+Tab'
     },
     increaseOverallOpacity: {
       label: 'Increase Overall Opacity',
@@ -714,6 +907,14 @@ const en: TranslationSchema = {
     decreaseTextOpacity: {
       label: 'Decrease Text Opacity',
       desc: 'Make content text more transparent'
+    },
+    increaseIconOpacity: {
+      label: 'Increase Icon Opacity',
+      desc: 'Make buttons and status icons clearer'
+    },
+    decreaseIconOpacity: {
+      label: 'Decrease Icon Opacity',
+      desc: 'Make buttons and status icons more transparent'
     },
     takeScreenshot: {
       label: 'Screenshot',

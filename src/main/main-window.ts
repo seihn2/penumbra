@@ -3,6 +3,7 @@ import { shell, BrowserWindow, ipcMain } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { settings, applyDockVisibility } from './settings'
+import { applyTrafficLightMode } from './services/window-appearance'
 
 function clampOpacity(value: number): number {
   if (Number.isNaN(value)) return 1
@@ -34,11 +35,8 @@ export function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
-    // Floor the size so resizing the edge can't shrink the window small enough
-    // to break the layout. The coach column (≥300px) plus the main content
-    // (≥~400px) need room; below this the column gets crushed.
-    minWidth: 720,
-    minHeight: 420,
+    minWidth: 480,
+    minHeight: 300,
     // macOS: keep native traffic lights (close/min/fullscreen) via hidden title
     // bar. Other platforms stay fully frameless with custom controls.
     ...(isMac
@@ -69,6 +67,7 @@ export function createWindow(): void {
   global.mainWindow = mainWindow
 
   mainWindow.setMenuBarVisibility(false)
+  applyTrafficLightMode(mainWindow, settings.trafficLightMode)
 
   mainWindow.on('ready-to-show', () => {
     // Guarantee a visible, on-screen, opaque window at startup so a previous

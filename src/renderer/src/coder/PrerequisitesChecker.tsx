@@ -6,7 +6,8 @@ import { usePrerequisiteForm } from './hooks/usePrerequisiteForm'
 export function PrerequisitesChecker() {
   const { t } = useTranslation()
   const {
-    apiKey,
+    answerServiceKeyConfigured,
+    answerServiceReady,
     inputApiKey,
     inputApiBaseURL,
     showApiKey,
@@ -17,13 +18,14 @@ export function PrerequisitesChecker() {
     openFullSettings
   } = usePrerequisiteForm()
 
-  // If apiKey exists, skip this checker
-  if (apiKey) {
+  // Wait for main-process profile activation before deciding whether setup is
+  // needed; this avoids a first-frame flash for users with a saved profile key.
+  if (!answerServiceReady || answerServiceKeyConfigured) {
     return null
   }
 
   const submitIfReady = () => {
-    if (inputApiKey.trim()) saveApiSettings()
+    if (inputApiKey.trim()) void saveApiSettings()
   }
 
   return (
@@ -73,10 +75,14 @@ export function PrerequisitesChecker() {
         </div>
 
         <div className="flex gap-3">
-          <Button variant="ghost" onClick={openFullSettings} className="flex-1">
+          <Button variant="ghost" onClick={() => void openFullSettings()} className="flex-1">
             {t('prerequisites.moreSettings')}
           </Button>
-          <Button disabled={!inputApiKey.trim()} className="flex-[2]" onClick={saveApiSettings}>
+          <Button
+            disabled={!inputApiKey.trim()}
+            className="flex-[2]"
+            onClick={() => void saveApiSettings()}
+          >
             {t('prerequisites.start')}
           </Button>
         </div>

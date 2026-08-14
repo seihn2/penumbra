@@ -53,11 +53,30 @@ const defaultShortcuts: Record<string, Omit<Shortcut, 'defaultKey'>> = {
     key: `${platformAlt}+M`,
     category: 'Window Management'
   },
+  newConversation: {
+    action: 'newConversation',
+    key: `${platformAlt}+Shift+N`,
+    category: 'Window Management'
+  },
+  focusComposer: {
+    action: 'focusComposer',
+    key: `${platformAlt}+I`,
+    category: 'Window Management'
+  },
   toggleContentProtection: {
     action: 'toggleContentProtection',
     key: `${platformAlt}+Shift+S`,
     category: 'Window Management'
   },
+  ...(isMac
+    ? {
+        toggleDockIcon: {
+          action: 'toggleDockIcon',
+          key: `${platformAlt}+Shift+D`,
+          category: 'Window Management'
+        }
+      }
+    : {}),
   increaseOverallOpacity: {
     action: 'increaseOverallOpacity',
     key: `${platformAlt}+=`,
@@ -86,6 +105,16 @@ const defaultShortcuts: Record<string, Omit<Shortcut, 'defaultKey'>> = {
   decreaseTextOpacity: {
     action: 'decreaseTextOpacity',
     key: `${platformAlt}+Shift+[`,
+    category: 'Window Management'
+  },
+  increaseIconOpacity: {
+    action: 'increaseIconOpacity',
+    key: `${platformAlt}+Shift+=`,
+    category: 'Window Management'
+  },
+  decreaseIconOpacity: {
+    action: 'decreaseIconOpacity',
+    key: `${platformAlt}+Shift+-`,
     category: 'Window Management'
   },
   takeScreenshot: {
@@ -186,7 +215,7 @@ export const useShortcutsStore = create<ShortcutsStore>()(
     }),
     {
       name: 'interview-coder-shortcuts',
-      version: 9,
+      version: 11,
       migrate: (state: unknown, version: number) => {
         if (!isPersistedShortcutsState(state) || !state.shortcuts) return state as ShortcutsStore
         // Merge in any new default shortcuts that are missing

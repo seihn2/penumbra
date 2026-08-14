@@ -280,9 +280,26 @@ const ko: TranslationSchema = {
     suggestions: '답변 제안',
     aiAssist: 'AI 실시간 지원',
     askAi: 'AI에 도움 요청',
+    detectedQuestion: '감지한 새 질문',
+    detectedQuestionWaiting: '이 질문의 답변 포인트를 준비하는 중…',
     aiAssistLoading: '답변 포인트 생성 중…',
     aiAssistEmpty:
       '면접관이 질문하면 답변 포인트가 자동으로 표시됩니다. "AI에 도움 요청"도 가능합니다.',
+    assist: {
+      opening: '먼저 할 말',
+      path: '답변 흐름',
+      evidence: '프로젝트 근거',
+      followUp: '예상 꼬리질문',
+      avoid: '주의할 점',
+      kind: {
+        project: '프로젝트 심층 질문',
+        behavioral: '경험·행동 질문',
+        'system-design': '시스템 설계',
+        algorithm: '알고리즘',
+        concept: '개념·원리',
+        general: '종합 질문'
+      }
+    },
     topicSummary: '주제 요약',
     exportTranscript: '면접 기록 내보내기',
     exported: '면접 기록을 내보냈습니다',
@@ -295,6 +312,19 @@ const ko: TranslationSchema = {
     speakerUnknown: '알 수 없음',
     copyPoints: '요점 복사',
     pointsCopied: '복사됨',
+    rememberAnswerPolicy: '다음에도 이 표현 사용',
+    answerPolicyRemembered: '이 표현 저장됨',
+    answerPolicySaved: '저장했습니다. 비슷한 질문에서는 이 표현을 우선 사용합니다.',
+    answerPolicySaveFailed: '저장하지 못했습니다: {{error}}',
+    answerPolicyConflict: '비슷한 질문에 이미 저장된 표현이 있습니다',
+    answerPolicyPrevious: '현재 저장된 표현',
+    answerPolicyKeepPrevious: '기존 표현 유지',
+    answerPolicyReplace: '현재 답변으로 교체',
+    rememberSpokenAnswer: '방금 말한 답변 기억',
+    spokenAnswerTitle: '실제 답변 경로 확인',
+    spokenAnswerDesc:
+      '방금 답변한 내용의 전사입니다. 인식 오류를 수정한 뒤 비슷한 질문의 답변 표현으로 저장하세요.',
+    saveSpokenAnswer: '내 답변 저장',
     prevPoint: '이전',
     nextPoint: '다음',
     pointIndex: '{{current}}/{{total}}',
@@ -378,11 +408,36 @@ const ko: TranslationSchema = {
     model: {
       title: '모델 서비스',
       desc: 'OpenAI 호환 모델 서비스를 설정하여 풀이, 추가 질문, 실시간 번역에 사용합니다.',
+      profile: '서비스 프로필',
+      profileDesc: '엔드포인트, 모델, 계정 모델 목록, 암호화 Key를 프로필별로 분리합니다.',
+      profileName: '프로필 이름',
+      profileNameDesc: 'OpenAI, DeepSeek, 사내 게이트웨이처럼 구분하기 쉬운 이름을 사용하세요.',
+      addProfile: '서비스 프로필 추가',
+      deleteProfile: '현재 프로필 삭제',
+      deleteProfileConfirm: '“{{name}}” 프로필과 저장된 Key를 삭제할까요?',
+      profileAdded: '답변 서비스 프로필을 추가했습니다',
+      profileDeleted: '답변 서비스 프로필을 삭제했습니다',
       baseUrlDesc:
         '예: https://api.siliconflow.cn/v1. 비워두면 기본 OpenAI 호환 주소를 사용합니다.',
       baseUrlPlaceholder: '비워둘 수 있음, 기본값은 OpenAI API',
       presetPlaceholder: '제공자 선택',
+      protocolLabel: 'API 프로토콜',
+      protocolDesc:
+        '자동 모드는 제공업체에 맞는 방식을 우선 사용하고, 답변 출력 전에 미지원이 확인될 때만 전환합니다.',
+      protocolAuto: '자동(권장)',
+      protocolResponses: 'Responses API',
+      protocolChat: 'Chat Completions',
+      protocolAnthropic: 'Anthropic Messages',
       apiKeyPlaceholder: 'API Key 입력',
+      apiKeyReplacePlaceholder: '저장된 Key를 교체할 새 Key 입력',
+      keyStored: '암호화 저장됨 ····{{suffix}}. 원본 Key는 앱 설정에 저장되지 않습니다.',
+      keyNotStored: '이 프로필에는 저장된 Key가 없습니다.',
+      saveKey: 'Key 저장',
+      replaceKey: 'Key 교체',
+      deleteKey: 'Key 삭제',
+      keySaved: 'Key를 암호화하여 저장했습니다',
+      keySaveFail: '시스템 보안 저장소에 Key를 저장하지 못했습니다.',
+      keyDeleted: 'Key를 삭제했습니다',
       modelLabel: '답변 모델',
       modelDesc:
         '먼저 현재 제공자의 자주 쓰는 모델을 보여 줍니다. Key 입력 후 계정에서 사용 가능한 모델을 자동으로 불러옵니다. 스크린샷에는 비전 모델을 선택하세요.',
@@ -404,10 +459,10 @@ const ko: TranslationSchema = {
       testFail: '연결 실패: {{error}}',
       refresh: '계정 모델 다시 불러오기',
       fetching: '이 Key에서 사용 가능한 모델을 불러오는 중…',
-      fetched: '계정 모델 {{count}}개를 불러왔습니다.',
-      fetchHint: 'Key를 입력하면 계정 모델을 자동으로 불러옵니다.',
-      fetchAutoFailed: '계정 모델을 자동으로 불러오지 못했습니다. 새로고침으로 다시 시도하세요.',
-      catalogUpdated: '인기 모델 목록 업데이트: {{date}}.',
+      fetched: '계정 모델 {{count}}개를 업데이트했습니다.',
+      cached: '계정 모델 {{count}}개가 캐시되어 있습니다. 새로고침을 눌렀을 때만 다시 불러옵니다.',
+      fetchHint: '필요할 때 새로고침 버튼을 눌러 계정 모델을 불러오세요.',
+      fetchFailed: '불러오지 못했습니다. 새로고침을 눌러 다시 시도하세요.',
       fetchOk: '계정 모델 {{count}}개를 불러왔습니다',
       fetchFail: '모델 불러오기 실패: {{error}}'
     },
@@ -434,9 +489,9 @@ const ko: TranslationSchema = {
       coachEnabled: '면접 연습 어시스턴트',
       coachEnabledDesc:
         '실시간 전사로 화자와 면접 단계를 판단하고 구조화된 답변 제안을 제공합니다.',
-      realtimeAssist: 'AI 실시간 지원',
+      realtimeAssist: '새 질문 감지 및 답변 힌트 생성',
       realtimeAssistDesc:
-        '면접관이 질문하면 자동으로 AI를 호출해 답변 포인트를 생성합니다(토큰 소모가 많음; 끌 수 있고 "AI에 도움 요청"으로 수동 실행도 가능).',
+        '면접관의 새 질문을 계속 감지하고 말이 끝나면 답변 포인트를 자동 생성합니다(토큰 소모가 많으며 "AI에 도움 요청"으로 수동 실행할 수도 있습니다).',
       proactiveAssist: '능동형 실시간 코칭',
       proactiveAssistDesc:
         '질문이나 키 입력 없이 약 20초마다 대화 흐름에 따라 먼저 제안합니다: 이력서 프로젝트, 관련 SOTA 기술, 답변 요점, 되물을 좋은 질문(토큰 소모가 가장 많음; 연습 시 권장).',
@@ -490,7 +545,7 @@ const ko: TranslationSchema = {
     },
     appearance: {
       title: '외관',
-      desc: '전체, 창 배경, 텍스트 불투명도를 개별적으로 제어합니다.',
+      desc: 'UI 글자 크기, 창 제어 버튼, 네 가지 불투명도를 조절합니다.',
       accentColor: '강조 색상',
       accentColorDesc: 'UI 강조 색상을 사용자 지정 — 버튼, 강조, 힌트에 적용됩니다.',
       accentColorCustom: '사용자 지정 색상',
@@ -502,10 +557,30 @@ const ko: TranslationSchema = {
       windowOpacityDesc: '배경/패널만 조절. 완전 투명 시 텍스트가 투명한 창 위에 뜹니다.',
       textOpacity: '텍스트 불투명도',
       textOpacityDesc: '텍스트만 조절하며 배경에는 영향을 주지 않습니다.',
+      iconOpacity: '아이콘 불투명도',
+      iconOpacityDesc:
+        '버튼과 상태 아이콘만 조절하며 텍스트, 배경, 스크린샷에는 영향을 주지 않습니다.',
       transparent: '투명',
       opaque: '불투명',
       uiLanguage: '인터페이스 언어',
       uiLanguageDesc: '앱 인터페이스 표시 언어를 전환합니다.',
+      uiFontSize: '인터페이스 글자 크기',
+      uiFontSizeDesc: '탐색, 설정, 일반 UI 텍스트를 조절하며 답변 글자는 별도로 설정합니다.',
+      codeBlockTheme: '코드 블록 스타일',
+      codeBlockThemeDesc:
+        '코드 영역 대비를 선택합니다. 부드러운 모드는 눈에 띄는 검은 배경을 피합니다.',
+      codeTheme: {
+        soft: '부드럽게(권장)',
+        light: '밝게',
+        dark: '어둡게'
+      },
+      trafficLightMode: '창 제어 버튼',
+      trafficLightModeDesc: '평소에는 숨기고 포인터가 왼쪽 위에 있을 때만 표시합니다.',
+      trafficLights: {
+        hover: '가리킬 때 표시(권장)',
+        always: '항상 표시',
+        hidden: '항상 숨기기'
+      },
       reduceMotion: '모션 줄이기',
       reduceMotionDesc: '인터페이스 애니메이션을 줄여 면접 중 방해를 줄입니다.',
       motion: {
@@ -571,6 +646,108 @@ const ko: TranslationSchema = {
       previewDesc: 'AI 프롬프트에 실제로 추가되는 텍스트입니다 (현재 프로필 기준).',
       previewEmpty: '(현재 프로필이 비어 있습니다. 위 항목을 입력하면 여기에 표시됩니다)'
     },
+    projectKnowledge: {
+      title: '프로젝트 지식',
+      desc: '직접 구현한 코드와 확인한 답변 표현을 실제 답변에 반영합니다.',
+      sourcesTitle: '로컬 코드 저장소',
+      sourcesDesc: '소스, 테스트, 문서를 색인하고 현재 질문과 관련된 조각만 검색합니다.',
+      import: '저장소 추가',
+      loading: '프로젝트 지식을 불러오는 중…',
+      emptyProjects:
+        '아직 프로젝트가 없습니다. 로컬 코드 폴더를 선택하면 실제 구현을 근거로 답변합니다.',
+      projectStats: '파일 {{files}}개 · 조각 {{chunks}}개',
+      sourceGraphStats: '심볼 {{symbols}}개 · 소스 관계 {{relations}}개 분석',
+      updatedAt: '{{time}} 업데이트',
+      reindex: '다시 색인',
+      remove: '제거',
+      importSuccess: '프로젝트 색인 완료',
+      reindexSuccess: '프로젝트 색인 업데이트됨',
+      removeSuccess: '프로젝트 색인 제거됨',
+      actionFailed: '작업 실패: {{error}}',
+      policiesTitle: '확인한 답변 표현',
+      policiesDesc:
+        '실시간 도움에서 확인한 표현입니다. 비슷한 질문에서 우선 재사용해 답변 일관성을 유지합니다.',
+      emptyPolicies:
+        '확인한 표현이 아직 없습니다. 유용한 답변에서 “다음에도 이 표현 사용”을 선택하세요.',
+      edit: '편집',
+      save: '저장',
+      cancel: '취소',
+      delete: '삭제',
+      saved: '답변 표현을 저장했습니다',
+      deleted: '답변 표현을 삭제했습니다',
+      required: '질문과 답변을 모두 입력해야 합니다',
+      removeConfirm: '로컬 색인만 제거하며 소스 코드는 삭제하지 않습니다. 계속할까요?',
+      deletePolicyConfirm: '비슷한 질문에서 이 표현을 더 이상 사용하지 않습니다. 계속할까요?',
+      materials: {
+        title: '이력서, 채팅, 프로젝트 자료',
+        desc: '이력서 배경, 사용자 표현, 프로젝트 사실, 참고 설계로 나누어 색인하고 관련 부분만 검색합니다.',
+        import: '자료 추가',
+        imported: '자료 색인을 완료했습니다',
+        reindexed: '자료 색인을 업데이트했습니다',
+        removed: '자료 색인을 제거했습니다',
+        removeConfirm: '로컬 색인만 제거하고 원본 파일은 삭제하지 않습니다. 계속할까요?',
+        stats: '조각 {{chunks}}개 · {{time}} 업데이트',
+        empty:
+          'PDF, Markdown, TXT, JSON 형식의 이력서, 채팅 내보내기, 프로젝트 문서를 추가할 수 있습니다.'
+      },
+      external: {
+        title: '외부 지식 API',
+        desc: '기존 지식베이스를 연결하고 프로젝트 사실, 이력서 배경, 사용자 표현, 참고 설계를 구분합니다.',
+        add: 'API 연결',
+        name: '소스 이름',
+        namePlaceholder: '예: 프로젝트 문서',
+        role: '근거 역할',
+        endpoint: '검색 엔드포인트',
+        protocol: 'API 프로토콜',
+        auth: '인증 방식',
+        apiKey: 'API Key',
+        keyPlaceholder: '지식 API Key 입력',
+        keyKeepPlaceholder: '비워 두면 기존 Key 유지',
+        headerName: '인증 Header',
+        namespace: '공간 / 프로젝트 ID',
+        namespacePlaceholder: '선택 사항',
+        timeout: '실시간 제한 시간(ms)',
+        advanced: '고급 필드 매핑',
+        queryField: '질문 필드',
+        limitField: '개수 필드',
+        namespaceField: '공간 필드',
+        useInInterview: '면접 중 이 소스 사용',
+        save: '소스 저장',
+        required: '소스 이름과 엔드포인트가 필요합니다',
+        saved: '지식 API를 저장했습니다',
+        enabled: '지식 소스를 켰습니다',
+        disabled: '지식 소스를 껐습니다',
+        test: '연결 테스트',
+        testSuccess: '연결 성공, 근거 {{count}}개 반환',
+        testFailed: '연결 실패: {{error}}',
+        deleteConfirm: '이 소스에 저장된 API Key도 삭제합니다. 계속할까요?',
+        deleted: '지식 소스와 Key를 삭제했습니다',
+        empty: '외부 소스가 없습니다. Dify 또는 일반 JSON 검색 API를 연결할 수 있습니다.',
+        noKeyNeeded: 'Key 불필요',
+        keySaved: 'Key 저장됨 ····{{suffix}}',
+        keyMissing: 'Key 없음',
+        lastTestOk: '{{time}} 성공 · {{count}}개',
+        lastTestFailed: '{{time}} 실패',
+        roles: {
+          'project-fact': '프로젝트 사실',
+          'candidate-profile': '이력서 배경',
+          'user-voice': '사용자 표현',
+          reference: '참고 설계'
+        },
+        protocols: {
+          'generic-json': '일반 JSON 검색',
+          dify: 'Dify 지식베이스'
+        },
+        authTypes: {
+          none: '인증 없음',
+          bearer: 'Bearer Token',
+          'x-api-key': 'X-API-Key',
+          'custom-header': '사용자 정의 Header'
+        }
+      },
+      privacyNote:
+        '색인은 이 기기에 저장됩니다. 현재 질문과 관련된 소량의 조각만 설정한 답변 모델로 전송합니다.'
+    },
     privacy: {
       title: '개인정보 및 보안',
       desc: '로컬 설정, 권한, 플랫폼 표시 옵션.',
@@ -588,7 +765,9 @@ const ko: TranslationSchema = {
       stealthOff: '화면 공유 스텔스 꺼짐',
       hideDock: 'Dock 아이콘 숨기기',
       hideDockDesc:
-        '활성화하면 Dock과 Cmd+Tab에 표시되지 않으며 단축키로만 창을 호출할 수 있습니다.'
+        '활성화하면 Dock과 Cmd+Tab에 표시되지 않으며 옆의 단축키로 다시 표시할 수 있습니다.',
+      dockHidden: 'Dock 아이콘을 숨겼습니다',
+      dockShown: 'Dock 아이콘을 표시했습니다'
     }
   },
   help: {
@@ -680,9 +859,21 @@ const ko: TranslationSchema = {
       label: '마우스 통과',
       desc: '활성화하면 클릭이 창을 통과하여 뒤쪽 내용에 전달됩니다'
     },
+    newConversation: {
+      label: '새 대화',
+      desc: '현재 대화를 지우고 입력창에 커서를 놓습니다'
+    },
+    focusComposer: {
+      label: '입력창 포커스',
+      desc: '창을 표시하고 마우스 통과를 해제한 뒤 바로 입력합니다'
+    },
     toggleContentProtection: {
       label: '화면 공유 스텔스 전환',
       desc: '녹화·공유 시 창 숨김을 한 키로 켜고 끄기'
+    },
+    toggleDockIcon: {
+      label: 'Dock 아이콘 숨기기/표시',
+      desc: 'Penumbra를 Dock과 Cmd+Tab에 표시할지 전환'
     },
     increaseOverallOpacity: { label: '전체 불투명도 높이기', desc: '창 전체를 더 불투명하게' },
     decreaseOverallOpacity: { label: '전체 불투명도 낮추기', desc: '창 전체를 더 투명하게' },
@@ -693,6 +884,8 @@ const ko: TranslationSchema = {
     },
     increaseTextOpacity: { label: '텍스트 불투명도 높이기', desc: '콘텐츠 텍스트를 선명하게' },
     decreaseTextOpacity: { label: '텍스트 불투명도 낮추기', desc: '콘텐츠 텍스트를 투명하게' },
+    increaseIconOpacity: { label: '아이콘 불투명도 높이기', desc: '버튼과 상태 아이콘을 선명하게' },
+    decreaseIconOpacity: { label: '아이콘 불투명도 낮추기', desc: '버튼과 상태 아이콘을 투명하게' },
     takeScreenshot: { label: '스크린샷', desc: '캡처하여 풀이 생성 (새 대화 시작)' },
     appendScreenshot: {
       label: '스크린샷 추가',

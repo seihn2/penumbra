@@ -7,6 +7,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   screenshot: '截图',
   transcript: '转录',
   profile: '档案',
+  knowledge: '项目知识',
   prompt: '提问',
   other: '其他'
 }

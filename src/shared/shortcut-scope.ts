@@ -14,12 +14,17 @@
 export type ShortcutScope = 'system' | 'window' | 'leader'
 
 /** The only actions allowed to default to a system-wide (global) scope.
-   'ignoreOrEnableMouse' is included as an emergency passthrough release. */
+   'ignoreOrEnableMouse' is included as an emergency passthrough release, and
+   keyboard-first actions remain global so a hidden or click-through app can be
+   recovered without touching its window. */
 export const SYSTEM_SAFE_ACTIONS: readonly string[] = [
   'hideOrShowMainWindow',
   'takeScreenshot',
   'toggleTranscription',
-  'ignoreOrEnableMouse'
+  'ignoreOrEnableMouse',
+  'toggleDockIcon',
+  'newConversation',
+  'focusComposer'
 ] as const
 
 /** Accelerators that common apps rely on, with the apps that use them. Used to

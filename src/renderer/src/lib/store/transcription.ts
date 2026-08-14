@@ -4,6 +4,7 @@ import {
   createInitialInterviewCoachState,
   type InterviewCoachState
 } from '../../../../shared/interview-coach'
+import type { InterviewQuestionSnapshot } from '../../../../shared/interview-question-detection'
 
 export interface TranslationItem {
   sourceText: string
@@ -16,6 +17,8 @@ export interface AssistItem {
   question: string
   points: string
   timestamp: number
+  turnId?: string
+  revision?: number
 }
 
 export interface MemoryCandidateItem {
@@ -29,6 +32,7 @@ interface TranscriptionState {
   translations: TranslationItem[]
   interviewCoach: InterviewCoachState
   assists: AssistItem[]
+  detectedQuestion: InterviewQuestionSnapshot | null
   assistLoading: boolean
   liveAssist: string
   summary: string
@@ -41,6 +45,7 @@ interface TranscriptionStore extends TranscriptionState {
   setTranscriptionText: (text: string) => void
   addTranslation: (item: TranslationItem) => void
   setInterviewCoach: (state: InterviewCoachState) => void
+  setDetectedQuestion: (question: InterviewQuestionSnapshot) => void
   setAssistLoading: (v: boolean) => void
   setLiveAssist: (text: string) => void
   addAssist: (item: AssistItem) => void
@@ -59,6 +64,7 @@ const defaultState: TranscriptionState = {
   translations: [],
   interviewCoach: createInitialInterviewCoachState(),
   assists: [],
+  detectedQuestion: null,
   assistLoading: false,
   liveAssist: '',
   summary: '',
@@ -73,6 +79,8 @@ export const useTranscriptionStore = create<TranscriptionStore>()((set) => ({
   addTranslation: (item) =>
     set((state) => ({ translations: [...state.translations, item].slice(-8) })),
   setInterviewCoach: (state) => set({ interviewCoach: state }),
+  setDetectedQuestion: (detectedQuestion) =>
+    set({ detectedQuestion, liveAssist: '', assistLoading: false }),
   setAssistLoading: (v) => set({ assistLoading: v, ...(v ? { liveAssist: '' } : {}) }),
   setLiveAssist: (text) => set({ liveAssist: text }),
   addAssist: (item) =>
@@ -102,6 +110,7 @@ export const useTranscriptionStore = create<TranscriptionStore>()((set) => ({
       translations: [],
       interviewCoach: createInitialInterviewCoachState(),
       assists: [],
+      detectedQuestion: null,
       assistLoading: false,
       liveAssist: '',
       summary: '',
@@ -119,6 +128,7 @@ export const useInterviewCoachPanelState = () =>
       translations: state.translations,
       interviewCoach: state.interviewCoach,
       assists: state.assists,
+      detectedQuestion: state.detectedQuestion,
       assistLoading: state.assistLoading,
       liveAssist: state.liveAssist,
       summary: state.summary,
@@ -134,6 +144,7 @@ export const useTranscriptionControllerActions = () =>
       setTranscriptionText: state.setTranscriptionText,
       addTranslation: state.addTranslation,
       setInterviewCoach: state.setInterviewCoach,
+      setDetectedQuestion: state.setDetectedQuestion,
       setAssistLoading: state.setAssistLoading,
       setLiveAssist: state.setLiveAssist,
       addAssist: state.addAssist,

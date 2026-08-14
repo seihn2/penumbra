@@ -1,12 +1,13 @@
 import type { BrowserWindow } from 'electron'
 import { withFirstChunkTimeout } from '../../shared/stream-timeout'
-import { classifyFailure, type FailureKind } from '../../shared/retry-policy'
+import { classifyFailure, decideRecovery, type FailureKind } from '../../shared/retry-policy'
 
 export type AbortReason = 'user' | 'new-request'
 
 // If the model sends no first token within this long, treat it as a stalled
 // provider: abort and surface an error instead of spinning "生成中" forever.
 const FIRST_CHUNK_TIMEOUT_MS = 30000
+const MAX_STREAM_ATTEMPTS = 2
 
 export interface StreamContext {
   controller: AbortController
@@ -20,6 +21,8 @@ interface RunTextStreamOptions {
   errorPrefix: string
   onComplete?: (assistantResponse: string) => void
   onFinally?: () => void
+  firstChunkTimeoutMs?: number
+  maxAttempts?: number
 }
 
 export class StreamManager {
@@ -45,74 +48,82 @@ export class StreamManager {
   }
 
   async runTextStream(options: RunTextStreamOptions) {
-    const { window, streamContext, createStream, errorPrefix, onComplete, onFinally } = options
-    let endedNaturally = true
-    let streamStarted = false
+    const {
+      window,
+      streamContext,
+      createStream,
+      errorPrefix,
+      onComplete,
+      onFinally,
+      firstChunkTimeoutMs = FIRST_CHUNK_TIMEOUT_MS,
+      maxAttempts = MAX_STREAM_ATTEMPTS
+    } = options
     let assistantResponse = ''
+    let completed = false
 
     try {
-      const textStream = createStream(streamContext.controller.signal)
-      streamStarted = true
+      for (let attempt = 1; attempt <= Math.max(1, maxAttempts); attempt += 1) {
+        if (streamContext.controller.signal.aborted) break
 
-      // Guard against a provider that accepts the request but never streams a
-      // token — without this the UI would spin indefinitely.
-      const guardedStream = withFirstChunkTimeout(
-        textStream,
-        FIRST_CHUNK_TIMEOUT_MS,
-        streamContext.controller
-      )
+        const attemptController = new AbortController()
+        const unlinkAbort = forwardAbort(streamContext.controller.signal, attemptController)
+        let emittedOnAttempt = false
 
-      try {
-        for await (const chunk of guardedStream) {
-          if (streamContext.controller.signal.aborted) {
-            endedNaturally = false
-            break
+        try {
+          const textStream = createStream(attemptController.signal)
+          const guardedStream = withFirstChunkTimeout(
+            textStream,
+            firstChunkTimeoutMs,
+            attemptController
+          )
+
+          for await (const chunk of guardedStream) {
+            if (streamContext.controller.signal.aborted) break
+            emittedOnAttempt = true
+            assistantResponse += chunk
+            window.webContents.send('solution-chunk', chunk)
           }
-          assistantResponse += chunk
-          window.webContents.send('solution-chunk', chunk)
-        }
-      } catch (error) {
-        // A first-chunk timeout aborts the controller, so check it explicitly:
-        // it must surface as an error, not be mistaken for a user cancel.
-        if (isTimeoutError(error)) {
-          endedNaturally = false
-          console.error(errorPrefix, 'first-chunk timeout')
-          window.webContents.send('solution-error', AI_TIMEOUT_MESSAGE)
-        } else if (!streamContext.controller.signal.aborted) {
-          endedNaturally = false
+
+          if (!streamContext.controller.signal.aborted) completed = true
+          break
+        } catch (error) {
+          if (streamContext.controller.signal.aborted) break
+
+          const kind = classifyStreamFailure(error)
+          const recovery = emittedOnAttempt
+            ? { kind: 'give-up' as const, reason: 'partial-output' }
+            : decideRecovery(kind, {
+                attempt,
+                maxAttempts: Math.max(1, maxAttempts)
+              })
+
+          if (recovery.kind === 'retry-now' || recovery.kind === 'retry-after') {
+            const delayMs = recovery.kind === 'retry-after' ? recovery.delayMs : 0
+            console.warn(`${errorPrefix} retrying after ${kind} failure (attempt ${attempt})`)
+            await waitForRetry(delayMs, streamContext.controller.signal)
+            continue
+          }
+
           console.error(errorPrefix, error)
-          window.webContents.send('solution-error', describeFailure(error))
-        } else {
-          endedNaturally = false
+          window.webContents.send(
+            'solution-error',
+            isTimeoutError(error) ? AI_TIMEOUT_MESSAGE : describeFailure(error)
+          )
+          break
+        } finally {
+          unlinkAbort()
         }
       }
 
       if (streamContext.controller.signal.aborted) {
-        if (streamContext.reason === 'user') {
-          window.webContents.send('solution-stopped')
-        }
-      } else if (endedNaturally) {
+        if (streamContext.reason === 'user') window.webContents.send('solution-stopped')
+      } else if (completed) {
         onComplete?.(assistantResponse)
         window.webContents.send('solution-complete')
-      }
-    } catch (error) {
-      if (isTimeoutError(error)) {
-        console.error(errorPrefix, 'first-chunk timeout')
-        window.webContents.send('solution-error', AI_TIMEOUT_MESSAGE)
-      } else if (streamContext.controller.signal.aborted) {
-        if (streamContext.reason === 'user') {
-          window.webContents.send('solution-stopped')
-        }
-      } else {
-        console.error(errorPrefix, error)
-        window.webContents.send('solution-error', describeFailure(error))
       }
     } finally {
       if (this.currentStreamContext === streamContext) {
         this.currentStreamContext = null
-      }
-      if (!streamStarted && streamContext.reason === 'user') {
-        window.webContents.send('solution-stopped')
       }
       onFinally?.()
     }
@@ -123,6 +134,21 @@ const AI_TIMEOUT_MESSAGE = 'AI 响应超时：服务长时间无响应，请检�
 
 function isTimeoutError(error: unknown): boolean {
   return error instanceof Error && error.message === 'AI_STREAM_TIMEOUT'
+}
+
+function classifyStreamFailure(error: unknown): FailureKind {
+  const detail = extractErrorMessage(error)
+  const apiError = error as {
+    statusCode?: number
+    status?: number
+    message?: string
+    name?: string
+  }
+  return classifyFailure({
+    statusCode: apiError?.statusCode ?? apiError?.status,
+    message: apiError?.message ?? detail,
+    name: apiError?.name
+  })
 }
 
 function extractErrorMessage(error: unknown): string {
@@ -171,12 +197,30 @@ const RECOVERY_HINT: Record<FailureKind, string> = {
    is actionable) followed by the underlying provider detail. */
 function describeFailure(error: unknown): string {
   const detail = extractErrorMessage(error)
-  const apiError = error as { statusCode?: number; message?: string; name?: string }
-  const kind = classifyFailure({
-    statusCode: apiError?.statusCode,
-    message: apiError?.message ?? detail,
-    name: apiError?.name
-  })
+  const kind = classifyStreamFailure(error)
   const hint = RECOVERY_HINT[kind]
   return hint ? `${hint}\n（详情：${detail}）` : detail
+}
+
+function forwardAbort(parent: AbortSignal, child: AbortController): () => void {
+  const abort = () => child.abort()
+  if (parent.aborted) {
+    abort()
+    return () => undefined
+  }
+  parent.addEventListener('abort', abort, { once: true })
+  return () => parent.removeEventListener('abort', abort)
+}
+
+async function waitForRetry(delayMs: number, signal: AbortSignal): Promise<void> {
+  if (delayMs <= 0 || signal.aborted) return
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      clearTimeout(timer)
+      signal.removeEventListener('abort', done)
+      resolve()
+    }
+    const timer = setTimeout(done, delayMs)
+    signal.addEventListener('abort', done, { once: true })
+  })
 }

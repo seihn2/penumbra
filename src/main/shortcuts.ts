@@ -12,14 +12,19 @@ import {
   scoreMockAnswer,
   tagAnswerProvenance
 } from './ai'
-import { state } from './state'
-import { settings } from './settings'
+import { setMousePassthrough, state, toggleMousePassthrough } from './state'
+import { applyDockVisibility, settings } from './settings'
 import {
   getTranscriptionText,
   clearTranscriptionText,
   endTranscriptionSession
 } from './transcription'
-import { hideOrShowWindow, moveWindowBy, snapWindowTo } from './services/window-controller'
+import {
+  hideOrShowWindow,
+  moveWindowBy,
+  revealWindowForKeyboardInput,
+  snapWindowTo
+} from './services/window-controller'
 import { StreamManager } from './services/stream-manager'
 import { AiConversationService } from './services/ai-conversation-service'
 import { recordEgress } from './outbound-log'
@@ -32,6 +37,7 @@ import {
 import { getShortcutRegistrationKeys } from '../shared/shortcut-keys'
 import { detectConflicts } from '../shared/shortcut-scope'
 import { asrLog } from './asr/asr-log'
+import type { OpacityTarget } from '../shared/opacity'
 import { probeAsrConnection } from './asr/probe'
 import { aggregateSelfCheck, type CheckResult } from '../shared/self-check'
 import { evaluateControl } from '../shared/config-dependency'
@@ -78,6 +84,7 @@ const callbacks: Record<string, () => void> = {
     const mainWindow = global.mainWindow
     if (!mainWindow || mainWindow.isDestroyed()) return
     mainWindow.setOpacity(1)
+    setMousePassthrough(false)
     snapWindowTo(mainWindow, 'center')
     mainWindow.show()
     mainWindow.setAlwaysOnTop(true, 'screen-saver', 1)
@@ -204,16 +211,8 @@ const callbacks: Record<string, () => void> = {
 
   ignoreOrEnableMouse: () => {
     const mainWindow = global.mainWindow
-    if (!mainWindow || mainWindow.isDestroyed() || !state.inCoderPage) return
-    state.ignoreMouse = !state.ignoreMouse
-    // forward:true keeps move events flowing (for hover) while clicks pass
-    // through to whatever is behind the window — required for real passthrough.
-    if (state.ignoreMouse) {
-      mainWindow.setIgnoreMouseEvents(true, { forward: true })
-    } else {
-      mainWindow.setIgnoreMouseEvents(false)
-    }
-    mainWindow.webContents.send('sync-app-state', state)
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    toggleMousePassthrough()
   },
   toggleContentProtection: () => {
     const mainWindow = global.mainWindow
@@ -224,6 +223,21 @@ const callbacks: Record<string, () => void> = {
     settings.contentProtectionEnabled = next
     mainWindow.setContentProtection(next)
     mainWindow.webContents.send('content-protection-changed', next)
+  },
+  toggleDockIcon: () => {
+    if (process.platform !== 'darwin') return
+    const mainWindow = global.mainWindow
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    const next = !settings.hideDockIcon
+    settings.hideDockIcon = next
+    applyDockVisibility(next)
+    mainWindow.webContents.send('dock-icon-visibility-changed', next)
+  },
+  newConversation: () => {
+    clearActiveConversation(true)
+  },
+  focusComposer: () => {
+    focusChatComposer(false)
   },
   pageUp: () => {
     const mainWindow = global.mainWindow
@@ -285,10 +299,12 @@ const callbacks: Record<string, () => void> = {
   increaseWindowOpacity: () => sendOpacityAdjust('window', 0.05),
   decreaseWindowOpacity: () => sendOpacityAdjust('window', -0.05),
   increaseTextOpacity: () => sendOpacityAdjust('text', 0.05),
-  decreaseTextOpacity: () => sendOpacityAdjust('text', -0.05)
+  decreaseTextOpacity: () => sendOpacityAdjust('text', -0.05),
+  increaseIconOpacity: () => sendOpacityAdjust('icon', 0.05),
+  decreaseIconOpacity: () => sendOpacityAdjust('icon', -0.05)
 }
 
-function sendOpacityAdjust(target: 'overall' | 'window' | 'text', delta: number) {
+function sendOpacityAdjust(target: OpacityTarget, delta: number) {
   const mainWindow = global.mainWindow
   if (!mainWindow || mainWindow.isDestroyed()) return
   mainWindow.webContents.send('adjust-opacity', { target, delta })
@@ -410,7 +426,7 @@ ipcMain.handle('tag-answer-provenance', (_event, answer) => {
   return tagAnswerProvenance(typeof answer === 'string' ? answer : '')
 })
 
-ipcMain.handle('clearConversation', () => {
+function clearActiveConversation(focusComposer = false): boolean {
   streamManager.abort('user')
   aiConversation.reset()
   // The interview is over: end the whole coaching session (pending transcript
@@ -422,7 +438,20 @@ ipcMain.handle('clearConversation', () => {
     mainWindow.webContents.send('screenshots-updated', [])
     mainWindow.webContents.send('transcription-session-cleared')
   }
+  if (focusComposer) focusChatComposer(true)
   return true
+}
+
+function focusChatComposer(resetConversation: boolean): void {
+  const mainWindow = global.mainWindow
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  setMousePassthrough(false)
+  revealWindowForKeyboardInput(mainWindow)
+  mainWindow.webContents.send('focus-chat-composer', { resetConversation })
+}
+
+ipcMain.handle('clearConversation', () => {
+  return clearActiveConversation(true)
 })
 
 ipcMain.handle('run-self-check', async () => {

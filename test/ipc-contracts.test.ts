@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  parseAnswerServiceCredentialRef,
+  parseAnswerServiceKeyWrite,
+  parseAnswerServiceProfileActivation,
   parseAppSettingsPatch,
   parseAppStatePatch,
   parseAudioSourceRole,
@@ -7,6 +10,32 @@ import {
   parseShortcutsArray,
   parseShortcutsRecord
 } from '../src/main/ipc-contracts'
+
+describe('answer-service profile IPC contracts', () => {
+  it('accepts a strict profile activation payload', () => {
+    const activation = {
+      id: 'answer-openai',
+      endpoint: 'https://api.openai.com/v1',
+      credentialRef: 'answer-key:answer-openai',
+      model: 'gpt-5',
+      protocol: 'responses'
+    }
+    expect(parseAnswerServiceProfileActivation(activation)).toEqual(activation)
+    expect(() => parseAnswerServiceProfileActivation({ ...activation, rawKey: 'secret' })).toThrow()
+  })
+
+  it('validates credential references and key writes', () => {
+    expect(parseAnswerServiceCredentialRef('answer-key:one')).toBe('answer-key:one')
+    expect(parseAnswerServiceKeyWrite({ credentialRef: 'answer-key:one', key: 'sk-one' })).toEqual({
+      credentialRef: 'answer-key:one',
+      key: 'sk-one'
+    })
+    for (const unsafe of ['', '__proto__', 'constructor', 'prototype']) {
+      expect(() => parseAnswerServiceCredentialRef(unsafe)).toThrow()
+    }
+    expect(() => parseAnswerServiceKeyWrite({ credentialRef: 'answer-key:one', key: '' })).toThrow()
+  })
+})
 
 describe('parseAppSettingsPatch', () => {
   it('accepts a partial patch', () => {
@@ -23,6 +52,12 @@ describe('parseAppSettingsPatch', () => {
     expect(parseAppSettingsPatch({})).toEqual({})
   })
 
+  it('accepts the macOS traffic-light visibility setting', () => {
+    expect(parseAppSettingsPatch({ trafficLightMode: 'hover' })).toEqual({
+      trafficLightMode: 'hover'
+    })
+  })
+
   it('rejects unknown keys', () => {
     expect(() => parseAppSettingsPatch({ rogue: true })).toThrow()
   })
@@ -33,11 +68,21 @@ describe('parseAppSettingsPatch', () => {
   })
 
   it('rejects invalid enum values', () => {
+    expect(() => parseAppSettingsPatch({ answerApiProtocol: 'legacy' })).toThrow()
     expect(() => parseAppSettingsPatch({ speakerDiarizationMode: 'magic' })).toThrow()
     expect(() => parseAppSettingsPatch({ transcriptionLanguage: 'xx' })).toThrow()
   })
 
   it('accepts valid enum values', () => {
+    expect(parseAppSettingsPatch({ answerApiProtocol: 'responses' })).toEqual({
+      answerApiProtocol: 'responses'
+    })
+    expect(parseAppSettingsPatch({ answerApiProtocol: 'anthropic-messages' })).toEqual({
+      answerApiProtocol: 'anthropic-messages'
+    })
+    expect(parseAppSettingsPatch({ trafficLightMode: 'hidden' })).toEqual({
+      trafficLightMode: 'hidden'
+    })
     expect(parseAppSettingsPatch({ speakerDiarizationMode: 'provider' })).toEqual({
       speakerDiarizationMode: 'provider'
     })

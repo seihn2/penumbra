@@ -6,6 +6,9 @@ dist
 *.log*
 .env*
 .playwright-mcp/
+artifacts/
+output/
+docs/plans/
 
 # Local agent/editor instructions and machine-specific state
 AGENTS.md

@@ -22,6 +22,7 @@ export function useTranscriptionController(): void {
     setTranscriptionText,
     addTranslation,
     setInterviewCoach,
+    setDetectedQuestion,
     setAssistLoading,
     setLiveAssist,
     addAssist,
@@ -131,6 +132,9 @@ export function useTranscriptionController(): void {
     window.api.onInterviewCoachUpdated((state) => {
       setInterviewCoach(state)
     })
+    window.api.onInterviewQuestionDetected((question) => {
+      setDetectedQuestion(question)
+    })
     window.api.onInterviewAssistLoading(() => {
       setAssistLoading(true)
     })
@@ -168,6 +172,7 @@ export function useTranscriptionController(): void {
     setIsTranscribing,
     addTranslation,
     setInterviewCoach,
+    setDetectedQuestion,
     setAssistLoading,
     setLiveAssist,
     addAssist,

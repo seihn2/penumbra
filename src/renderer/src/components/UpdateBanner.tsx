@@ -72,7 +72,7 @@ export function UpdateBanner() {
               </div>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-3)]">
                 <div
-                  className="h-full rounded-full bg-[var(--accent)] transition-[width]"
+                  className="h-full rounded-full bg-[var(--accent-fill)] transition-[width]"
                   style={{ width: `${percent}%` }}
                 />
               </div>

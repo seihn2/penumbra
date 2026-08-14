@@ -1,19 +1,32 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { app, dialog, ipcMain, safeStorage, screen } from 'electron'
-import { parseAppSettingsPatch, parseNonEmptyString } from './ipc-contracts'
+import {
+  parseAnswerServiceCredentialRef,
+  parseAnswerServiceKeyWrite,
+  parseAnswerServiceProfileActivation,
+  parseAppSettingsPatch,
+  parseNonEmptyString
+} from './ipc-contracts'
 import { secureSettingsStore, type SecretSettings } from './services/secure-settings-store'
 import { createSecretState, maskSecret } from '../shared/secret-lifecycle'
 import { isAllowedEndpoint, normalizeOrigin } from '../shared/provider-profile'
+import { DEFAULT_ANSWER_SERVICE_CREDENTIAL_REF } from '../shared/answer-service-profile'
 import { createActiveConfig, startDraft, editDraft, validateDraft } from '../shared/config-revision'
 import { asrLog } from './asr/asr-log'
 import { DEFAULT_ASR_MODEL } from '../shared/asr-models'
+import { applyTrafficLightMode } from './services/window-appearance'
+import { DEFAULT_ANSWER_API_PROTOCOL } from '../shared/answer-api-protocol'
+import { DEFAULT_TRAFFIC_LIGHT_MODE } from '../shared/traffic-light-mode'
 
 const secretSettingKeys = new Set<keyof SecretSettings>(['apiKey', 'dashscopeApiKey'])
 let secretsLoaded = false
+let activeAnswerServiceCredentialRef = DEFAULT_ANSWER_SERVICE_CREDENTIAL_REF
 
 ipcMain.handle('getAppSettings', () => {
   hydrateSecretSettings()
-  return settings
+  // The active answer-service key stays main-process-only. Renderer code gets
+  // its configured/masked state through the profile-specific IPC below.
+  return { ...settings, apiKey: '' }
 })
 
 // Validate a candidate AI base URL (P0#13): report whether it's an allowed
@@ -50,25 +63,72 @@ ipcMain.handle('validate-settings-patch', (_event, patch: unknown) => {
 // renderer can show "已保存 ····7F3A" without ever receiving the full key.
 ipcMain.handle('get-secret-status', () => {
   hydrateSecretSettings()
-  const statusOf = (raw: string) =>
-    raw ? createSecretState(true, maskSecret(raw)) : createSecretState(false)
   return {
-    apiKey: statusOf(settings.apiKey),
-    dashscopeApiKey: statusOf(settings.dashscopeApiKey)
+    apiKey: secretStatus(settings.apiKey),
+    dashscopeApiKey: secretStatus(settings.dashscopeApiKey)
   }
+})
+
+ipcMain.handle('activate-answer-service-profile', (_event, value) => {
+  hydrateSecretSettings()
+  const profile = parseAnswerServiceProfileActivation(value)
+  activeAnswerServiceCredentialRef = profile.credentialRef
+  settings.apiBaseURL = profile.endpoint
+  settings.model = profile.model
+  settings.answerApiProtocol = profile.protocol
+  settings.apiKey = answerServiceKeyFor(profile.credentialRef)
+  return { keyStatus: secretStatus(settings.apiKey) }
+})
+
+ipcMain.handle('get-answer-service-key-status', (_event, value) => {
+  hydrateSecretSettings()
+  const credentialRef = parseAnswerServiceCredentialRef(value)
+  return secretStatus(answerServiceKeyFor(credentialRef))
+})
+
+ipcMain.handle('save-answer-service-key', (_event, value) => {
+  hydrateSecretSettings()
+  const { credentialRef, key } = parseAnswerServiceKeyWrite(value)
+  secureSettingsStore.saveAnswerServiceKey(credentialRef, key)
+  if (activeAnswerServiceCredentialRef === credentialRef) settings.apiKey = key
+  return secretStatus(key)
+})
+
+ipcMain.handle('delete-answer-service-key', (_event, value) => {
+  hydrateSecretSettings()
+  const credentialRef = parseAnswerServiceCredentialRef(value)
+  secureSettingsStore.deleteAnswerServiceKey(credentialRef)
+  if (activeAnswerServiceCredentialRef === credentialRef) settings.apiKey = ''
+  return createSecretState(false)
 })
 
 ipcMain.handle('updateAppSettings', (_event, value) => {
   const _settings = parseAppSettingsPatch(value)
   const secretPatch = pickSecretSettings(_settings)
 
-  if (Object.keys(secretPatch).length > 0) {
-    Object.assign(settings, secureSettingsStore.save(secretPatch))
+  if (typeof secretPatch.apiKey === 'string') {
+    secureSettingsStore.saveAnswerServiceKey(
+      DEFAULT_ANSWER_SERVICE_CREDENTIAL_REF,
+      secretPatch.apiKey
+    )
+    if (activeAnswerServiceCredentialRef === DEFAULT_ANSWER_SERVICE_CREDENTIAL_REF) {
+      settings.apiKey = secretPatch.apiKey
+    }
+  }
+  if (typeof secretPatch.dashscopeApiKey === 'string') {
+    const saved = secureSettingsStore.save({ dashscopeApiKey: secretPatch.dashscopeApiKey })
+    settings.dashscopeApiKey = saved.dashscopeApiKey
   }
 
-  Object.assign(settings, _settings)
+  const nonSecretSettings = { ..._settings }
+  delete nonSecretSettings.apiKey
+  delete nonSecretSettings.dashscopeApiKey
+  Object.assign(settings, nonSecretSettings)
   if ('hideDockIcon' in _settings) {
     applyDockVisibility(settings.hideDockIcon)
+  }
+  if ('trafficLightMode' in _settings && global.mainWindow) {
+    applyTrafficLightMode(global.mainWindow, settings.trafficLightMode)
   }
   if ('contentProtectionEnabled' in _settings) {
     global.mainWindow?.setContentProtection(settings.contentProtectionEnabled !== false)
@@ -82,13 +142,30 @@ function hydrateSecretSettings(): void {
   asrLog('hydrateSecretSettings', {
     encryptionAvailable: safeStorage.isEncryptionAvailable(),
     loadedApiKeyLen: storedSecrets.apiKey.length,
+    answerServiceKeyCount: Object.keys(storedSecrets.answerServiceKeys).length,
     loadedDashscopeLen: storedSecrets.dashscopeApiKey.length,
     settingsApiKeyLen: settings.apiKey.length,
     settingsDashscopeLen: settings.dashscopeApiKey.length
   })
-  if (!settings.apiKey) settings.apiKey = storedSecrets.apiKey
+  if (!settings.apiKey) {
+    settings.apiKey =
+      storedSecrets.answerServiceKeys[DEFAULT_ANSWER_SERVICE_CREDENTIAL_REF] ?? storedSecrets.apiKey
+  }
   if (!settings.dashscopeApiKey) settings.dashscopeApiKey = storedSecrets.dashscopeApiKey
   secretsLoaded = true
+}
+
+function answerServiceKeyFor(credentialRef: string): string {
+  const stored = secureSettingsStore.getAnswerServiceKey(credentialRef)
+  if (stored) return stored
+  if (credentialRef === DEFAULT_ANSWER_SERVICE_CREDENTIAL_REF) {
+    return process.env.API_KEY || ''
+  }
+  return ''
+}
+
+function secretStatus(raw: string) {
+  return raw ? createSecretState(true, maskSecret(raw)) : createSecretState(false)
 }
 
 function pickSecretSettings(value: Partial<AppSettings>): Partial<SecretSettings> {
@@ -201,6 +278,7 @@ export const settings = {
   apiBaseURL: process.env.API_BASE_URL || '',
   apiKey: process.env.API_KEY || '',
   model: process.env.MODEL || '',
+  answerApiProtocol: DEFAULT_ANSWER_API_PROTOCOL,
   codeLanguage: process.env.CODE_LANGUAGE || 'typescript',
   customPrompt: '',
   promptPreset: 'default',
@@ -225,6 +303,7 @@ export const settings = {
   translationEnabled: false,
   translationTargetLanguage: 'zh',
   hideDockIcon: false,
+  trafficLightMode: DEFAULT_TRAFFIC_LIGHT_MODE,
   // Local sensitive-info firewall: when on (default), text is scrubbed of
   // secrets/PII (and the user's never-send words) before being sent to the AI.
   redactBeforeSend: true,

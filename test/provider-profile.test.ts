@@ -90,6 +90,12 @@ describe('computeFingerprint', () => {
     expect(computeFingerprint(a)).not.toBe(computeFingerprint(b))
   })
 
+  it('changes when the answer API protocol changes', () => {
+    const a = makeProfile({ protocol: 'responses' })
+    const b = makeProfile({ protocol: 'chat-completions' })
+    expect(computeFingerprint(a)).not.toBe(computeFingerprint(b))
+  })
+
   it('is unaffected by modelCache and lastTest', () => {
     const a = makeProfile()
     const b = makeProfile({
