@@ -1,6 +1,6 @@
 {
   "name": "penumbra",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "A privacy-aware desktop AI workspace for screenshot analysis, real-time transcription, and interview practice.",
   "main": "./out/main/index.js",
   "scripts": {

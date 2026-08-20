@@ -6,7 +6,7 @@
   <p>
     <a href="https://github.com/seihn2/penumbra/actions/workflows/ci.yml"><img src="https://github.com/seihn2/penumbra/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
     <a href="https://creativecommons.org/licenses/by-nc/4.0/"><img src="https://img.shields.io/badge/license-CC%20BY--NC%204.0-blue.svg" alt="CC BY-NC 4.0 license"></a>
-    <img src="https://img.shields.io/badge/version-1.9.2-6f42c1" alt="Version 1.9.2">
+    <img src="https://img.shields.io/badge/version-1.9.3-6f42c1" alt="Version 1.9.3">
     <img src="https://img.shields.io/badge/Electron-37-47848F?logo=electron" alt="Electron 37">
     <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111" alt="React 19">
   </p>

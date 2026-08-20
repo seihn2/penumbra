@@ -1,5 +1,28 @@
 # Changelog
 
+## Penumbra 1.9.3 - 2026-08-21
+
+### Stable macOS capture permissions
+
+- Added a stable local signing identity flow and release preflight checks so macOS Screen
+  Recording permissions can survive local rebuilds.
+- Wired GitHub Actions for a real macOS signing certificate through `MAC_CSC_LINK` and
+  `MAC_CSC_KEY_PASSWORD`; public releases still require those repository secrets.
+- Fixed local PKCS#12 certificate creation on current macOS/OpenSSL combinations.
+
+### 0 UI and appearance
+
+- Added one-percent 0 UI background opacity shortcuts with independent light and dark presets,
+  including fully transparent backgrounds.
+- Added configurable 0 UI text/background colors and border visibility, with smaller window and
+  font limits for dual-screen workflows.
+- 0 UI now renders live assistant output directly and shows a clear empty-state hint instead of
+  appearing blank.
+
+### Validation
+
+- Added migration, appearance, shortcut, release-preflight, and 0 UI contract coverage.
+
 ## Penumbra 1.9.2 - 2026-08-14
 
 ### 0 UI mode
