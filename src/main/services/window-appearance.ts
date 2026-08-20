@@ -5,6 +5,11 @@ const TRAFFIC_LIGHT_HOT_ZONE = { width: 92, height: 50 }
 const hoverMonitors = new WeakMap<BrowserWindow, ReturnType<typeof setInterval>>()
 const currentVisibility = new WeakMap<BrowserWindow, boolean>()
 
+export function applyZeroUiWindowAppearance(window: BrowserWindow, enabled: boolean): void {
+  if (process.platform !== 'darwin' || window.isDestroyed()) return
+  window.setHasShadow(!enabled)
+}
+
 export function isCursorInTrafficLightHotZone(bounds: Rectangle, cursor: Point): boolean {
   const relativeX = cursor.x - bounds.x
   const relativeY = cursor.y - bounds.y

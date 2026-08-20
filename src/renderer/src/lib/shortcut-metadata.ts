@@ -54,6 +54,8 @@ export const shortcutMetadata: ShortcutMetadata[] = [
   meta('decreaseTextOpacity', 'Window Management', { description: true }),
   meta('increaseIconOpacity', 'Window Management', { description: true }),
   meta('decreaseIconOpacity', 'Window Management', { description: true }),
+  meta('increaseZeroUiBackgroundOpacity', 'Window Management', { description: true }),
+  meta('decreaseZeroUiBackgroundOpacity', 'Window Management', { description: true }),
   meta('takeScreenshot', 'Screenshot & AI', { description: true }),
   meta('appendScreenshot', 'Screenshot & AI', { description: true }),
   meta('stopSolutionStream', 'Screenshot & AI', { description: true }),

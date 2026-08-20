@@ -567,6 +567,7 @@ const ko: TranslationSchema = {
       zeroUiMode: '0 UI 일반 텍스트 모드',
       zeroUiModeDesc:
         '모든 컨트롤과 스크린샷을 숨기고 AI 답변만 서식 있는 텍스트로 표시합니다. 전역 단축키로 언제든 전환할 수 있습니다.',
+      zeroUiEmptyHint: '0 UI 준비됨 · Alt+Shift+H로 Penumbra 전체 창 복원',
       zeroUiEnabled: '0 UI 일반 텍스트 모드가 켜졌습니다',
       zeroUiDisabled: '0 UI 일반 텍스트 모드가 꺼졌습니다',
       zeroUiBackdrop: '0 UI 배경 맞춤',
@@ -576,6 +577,16 @@ const ko: TranslationSchema = {
         dark: '뒤가 어두움 (밝은 글자)',
         light: '뒤가 밝음 (어두운 글자)'
       },
+      zeroUiBorder: '0 UI 테두리',
+      zeroUiBorderDesc: '텍스트 패널의 얇은 테두리를 표시합니다. 끄면 패널 그림자도 제거됩니다.',
+      zeroUiTextColor: '0 UI 글자 색상',
+      zeroUiTextColorDesc: '밝은 배경과 어두운 배경 프로필에 각각 저장됩니다.',
+      zeroUiBackgroundColor: '0 UI 배경 색상',
+      zeroUiBackgroundColorDesc: '선택한 프로필의 패널 색상을 정하며 투명도는 아래에서 조절합니다.',
+      zeroUiBackgroundOpacity: '0 UI 배경 불투명도',
+      zeroUiBackgroundOpacityDesc: '완전 투명부터 불투명까지 1% 단위로 세밀하게 조절합니다.',
+      zeroUiLowContrast:
+        '글자와 배경 대비가 낮습니다({{ratio}}:1). 가장 작은 글자는 읽기 어려울 수 있습니다.',
       uiFontSize: '인터페이스 글자 크기',
       uiFontSizeDesc: '탐색, 설정, 일반 UI 텍스트를 조절하며 답변 글자는 별도로 설정합니다.',
       codeBlockTheme: '코드 블록 스타일',
@@ -902,6 +913,14 @@ const ko: TranslationSchema = {
     decreaseTextOpacity: { label: '텍스트 불투명도 낮추기', desc: '콘텐츠 텍스트를 투명하게' },
     increaseIconOpacity: { label: '아이콘 불투명도 높이기', desc: '버튼과 상태 아이콘을 선명하게' },
     decreaseIconOpacity: { label: '아이콘 불투명도 낮추기', desc: '버튼과 상태 아이콘을 투명하게' },
+    increaseZeroUiBackgroundOpacity: {
+      label: '0 UI 배경 불투명도 높이기',
+      desc: '0 UI 표면을 더 불투명하게'
+    },
+    decreaseZeroUiBackgroundOpacity: {
+      label: '0 UI 배경 불투명도 낮추기',
+      desc: '0 UI 표면을 완전히 투명하게'
+    },
     takeScreenshot: { label: '스크린샷', desc: '캡처하여 풀이 생성 (새 대화 시작)' },
     appendScreenshot: {
       label: '스크린샷 추가',

@@ -122,6 +122,16 @@ const defaultShortcuts: Record<string, Omit<Shortcut, 'defaultKey'>> = {
     key: `${platformAlt}+Shift+-`,
     category: 'Window Management'
   },
+  increaseZeroUiBackgroundOpacity: {
+    action: 'increaseZeroUiBackgroundOpacity',
+    key: `${platformAlt}+Shift+Up`,
+    category: 'Window Management'
+  },
+  decreaseZeroUiBackgroundOpacity: {
+    action: 'decreaseZeroUiBackgroundOpacity',
+    key: `${platformAlt}+Shift+Down`,
+    category: 'Window Management'
+  },
   takeScreenshot: {
     action: 'takeScreenshot',
     key: `${platformAlt}+Enter`,

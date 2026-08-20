@@ -3,22 +3,18 @@ import { shell, BrowserWindow, ipcMain } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { settings, applyDockVisibility } from './settings'
-import { applyTrafficLightMode } from './services/window-appearance'
+import { applyTrafficLightMode, applyZeroUiWindowAppearance } from './services/window-appearance'
+import { clampOpacity } from '../shared/opacity'
 import {
   applyOverlayWindowBehavior,
   reassertOverlayWindowBehavior,
   showOverlayWindow
 } from './services/window-overlay'
 
-function clampOpacity(value: number): number {
-  if (Number.isNaN(value)) return 1
-  return Math.min(1, Math.max(0.1, value))
-}
-
 ipcMain.handle('setWindowOpacity', (_event, value: number) => {
   const window = global.mainWindow
   if (!window || window.isDestroyed()) return
-  window.setOpacity(clampOpacity(value))
+  window.setOpacity(clampOpacity('overall', value))
 })
 
 export function applyContentProtection(window: BrowserWindow, forceReset = false): void {
@@ -73,6 +69,7 @@ export function createWindow(): void {
 
   mainWindow.setMenuBarVisibility(false)
   applyTrafficLightMode(mainWindow, settings.zeroUiMode ? 'hidden' : settings.trafficLightMode)
+  applyZeroUiWindowAppearance(mainWindow, settings.zeroUiMode)
   applyOverlayWindowBehavior(mainWindow)
 
   mainWindow.on('ready-to-show', () => {

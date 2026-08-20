@@ -1,7 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { clampOpacity, OPACITY_DEFAULTS, OPACITY_MINIMUMS } from '../src/shared/opacity'
+import {
+  clampOpacity,
+  OPACITY_DEFAULTS,
+  OPACITY_MINIMUMS,
+  type AdjustableOpacityTarget
+} from '../src/shared/opacity'
 
 describe('opacity channels', () => {
   it('keeps four independent defaults', () => {
@@ -15,9 +20,9 @@ describe('opacity channels', () => {
     expect(clampOpacity('icon', 0)).toBe(0)
   })
 
-  it('keeps overall and text opacity recoverably visible', () => {
-    expect(clampOpacity('overall', 0)).toBe(0.2)
-    expect(clampOpacity('text', 0)).toBe(0.2)
+  it('allows overall and text opacity down to a recoverable five percent', () => {
+    expect(clampOpacity('overall', 0)).toBe(0.05)
+    expect(clampOpacity('text', 0)).toBe(0.05)
   })
 
   it('caps, rounds and recovers non-finite values', () => {
@@ -42,5 +47,23 @@ describe('opacity CSS layer contract', () => {
   it('keeps text and icons on separate visual channels', () => {
     expect(mainCss).toContain('var(--content-opacity, 1)')
     expect(mainCss).toContain('filter: opacity(var(--icon-opacity, 1))')
+  })
+
+  it('uses one-percent controls in settings and global shortcuts', () => {
+    const settings = readFileSync(
+      resolve(__dirname, '../src/renderer/src/settings/AppearanceSettingsSection.tsx'),
+      'utf8'
+    )
+    const shortcuts = readFileSync(resolve(__dirname, '../src/main/shortcuts.ts'), 'utf8')
+    expect(settings).toContain('step={0.01}')
+    expect(shortcuts).toContain("sendOpacityAdjust('overall', 0.01)")
+    expect(shortcuts).toContain("sendOpacityAdjust('text', -0.01)")
+    expect(shortcuts).toContain("sendOpacityAdjust('zeroUiBackground', 0.01)")
+    expect(shortcuts).toContain("sendOpacityAdjust('zeroUiBackground', -0.01)")
+  })
+
+  it('keeps the zero UI background channel separate from native window opacity', () => {
+    const target: AdjustableOpacityTarget = 'zeroUiBackground'
+    expect(target).toBe('zeroUiBackground')
   })
 })

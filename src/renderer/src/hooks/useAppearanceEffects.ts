@@ -1,10 +1,21 @@
 import { useEffect } from 'react'
-import { clampOpacity, OPACITY_DEFAULTS, type OpacityTarget } from '../../../shared/opacity'
+import {
+  clampOpacity,
+  OPACITY_DEFAULTS,
+  type AdjustableOpacityTarget
+} from '../../../shared/opacity'
 import { clampFontSize } from '../../../shared/font-size'
+import { clampZeroUiBackgroundOpacity } from '../../../shared/zero-ui-theme'
 import { useAppearanceSettings, useSettingsStore } from '@/lib/store/settings'
 
-function setOpacitySetting(target: OpacityTarget, value: number): void {
+function setOpacitySetting(target: AdjustableOpacityTarget, value: number): void {
   const state = useSettingsStore.getState()
+  if (target === 'zeroUiBackground') {
+    const light = state.zeroUiBackdrop === 'light'
+    const key = light ? 'zeroUiLightBackgroundOpacity' : 'zeroUiDarkBackgroundOpacity'
+    state.updateSetting(key, clampZeroUiBackgroundOpacity(value, state[key]))
+    return
+  }
   const nextValue = clampOpacity(target, value)
   if (target === 'overall') state.updateSetting('overallOpacity', nextValue)
   else if (target === 'window') state.updateSetting('opacity', nextValue)
@@ -12,8 +23,13 @@ function setOpacitySetting(target: OpacityTarget, value: number): void {
   else state.updateSetting('iconOpacity', nextValue)
 }
 
-function getOpacitySetting(target: OpacityTarget): number {
+function getOpacitySetting(target: AdjustableOpacityTarget): number {
   const state = useSettingsStore.getState()
+  if (target === 'zeroUiBackground') {
+    return state.zeroUiBackdrop === 'light'
+      ? state.zeroUiLightBackgroundOpacity
+      : state.zeroUiDarkBackgroundOpacity
+  }
   if (target === 'overall') return state.overallOpacity
   if (target === 'window') return state.opacity
   if (target === 'text') return state.textOpacity
@@ -29,7 +45,15 @@ export function useAppearanceEffects(): void {
     uiFontSize,
     answerFontSize,
     codeBlockTheme,
-    zeroUiBackdrop
+    zeroUiMode,
+    zeroUiBackdrop,
+    zeroUiDarkTextColor,
+    zeroUiDarkBackgroundColor,
+    zeroUiDarkBackgroundOpacity,
+    zeroUiLightTextColor,
+    zeroUiLightBackgroundColor,
+    zeroUiLightBackgroundOpacity,
+    zeroUiBorderVisible
   } = useAppearanceSettings()
 
   useEffect(() => {
@@ -84,11 +108,40 @@ export function useAppearanceEffects(): void {
   }, [codeBlockTheme])
 
   useEffect(() => {
+    const light = zeroUiBackdrop === 'light'
+    const textColor = light ? zeroUiLightTextColor : zeroUiDarkTextColor
+    const backgroundColor = light ? zeroUiLightBackgroundColor : zeroUiDarkBackgroundColor
+    const backgroundOpacity = light ? zeroUiLightBackgroundOpacity : zeroUiDarkBackgroundOpacity
+    const root = document.documentElement.style
+
+    root.setProperty('--zero-ui-text-color', textColor)
+    root.setProperty('--zero-ui-background-color', backgroundColor)
+    root.setProperty(
+      '--zero-ui-background-opacity',
+      clampZeroUiBackgroundOpacity(backgroundOpacity).toString()
+    )
     document.documentElement.dataset.zeroUiBackdrop = zeroUiBackdrop
+    document.documentElement.dataset.zeroUiMode = zeroUiMode ? 'true' : 'false'
+    document.documentElement.dataset.zeroUiBorder = zeroUiBorderVisible ? 'true' : 'false'
     return () => {
+      root.removeProperty('--zero-ui-text-color')
+      root.removeProperty('--zero-ui-background-color')
+      root.removeProperty('--zero-ui-background-opacity')
       delete document.documentElement.dataset.zeroUiBackdrop
+      delete document.documentElement.dataset.zeroUiMode
+      delete document.documentElement.dataset.zeroUiBorder
     }
-  }, [zeroUiBackdrop])
+  }, [
+    zeroUiBackdrop,
+    zeroUiBorderVisible,
+    zeroUiDarkBackgroundColor,
+    zeroUiDarkBackgroundOpacity,
+    zeroUiDarkTextColor,
+    zeroUiLightBackgroundColor,
+    zeroUiLightBackgroundOpacity,
+    zeroUiLightTextColor,
+    zeroUiMode
+  ])
 
   useEffect(() => {
     window.api.onAdjustOpacity(({ target, delta }) => {

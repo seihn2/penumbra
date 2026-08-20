@@ -14,6 +14,7 @@ const root = resolve(__dirname, '..')
 const yml = readFileSync(resolve(root, 'electron-builder.yml'), 'utf8')
 const plist = readFileSync(resolve(root, 'build/entitlements.mac.plist'), 'utf8')
 const hook = readFileSync(resolve(root, 'scripts/after-pack-mac-sign.cjs'), 'utf8')
+const releaseWorkflow = readFileSync(resolve(root, '.github/workflows/release.yml'), 'utf8')
 
 const configSources = {
   builderYaml: yml,
@@ -61,5 +62,10 @@ describe('release preflight over the real repo config', () => {
     // GitHub owner/repo placeholders are replaced.
     const codes = validateReleaseConfig(repoConfig).map((i) => i.code)
     expect(codes).toContain('publish-placeholder')
+  })
+
+  it('allows GitHub releases to receive a stable macOS signing identity', () => {
+    expect(releaseWorkflow).toContain('CSC_LINK: ${{ secrets.MAC_CSC_LINK }}')
+    expect(releaseWorkflow).toContain('CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}')
   })
 })

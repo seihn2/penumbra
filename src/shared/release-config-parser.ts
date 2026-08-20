@@ -5,6 +5,7 @@ export interface ReleaseConfigSources {
   entitlementsPlist: string
   signingHook: string
   hasSigningIdentity: boolean
+  hasStableLocalSigningIdentity?: boolean
 }
 
 function normalizeNewlines(source: string): string {
@@ -35,6 +36,7 @@ export function parseReleaseConfigSources(sources: ReleaseConfigSources): Releas
     resignBundleId: hook.match(/BUNDLE_ID\s*=\s*'([^']+)'/)?.[1],
     notarize: nestedScalar(yml, 'mac', 'notarize') === 'true',
     hasSigningIdentity: sources.hasSigningIdentity,
+    hasStableLocalSigningIdentity: sources.hasStableLocalSigningIdentity,
     hardenedRuntime: nestedScalar(yml, 'mac', 'hardenedRuntime') === 'true',
     infoPlistKeys: infoBlock
       ? [...infoBlock[1].matchAll(/^[ \t]+([A-Za-z]+):/gm)].map((match) => match[1])

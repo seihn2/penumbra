@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  applyZeroUiWindowAppearance,
   applyTrafficLightMode,
   isCursorInTrafficLightHotZone
 } from '../src/main/services/window-appearance'
@@ -94,5 +95,17 @@ describe('macOS traffic-light visibility', () => {
     const source = readFileSync(resolve(__dirname, '../src/main/main-window.ts'), 'utf8')
     expect(source).toContain('minWidth: 200')
     expect(source).toContain('minHeight: 120')
+  })
+
+  it('removes the native shadow in 0 UI mode and restores it afterwards', () => {
+    setPlatform('darwin')
+    const setHasShadow = vi.fn()
+    const window = { isDestroyed: () => false, setHasShadow }
+
+    applyZeroUiWindowAppearance(window as never, true)
+    applyZeroUiWindowAppearance(window as never, false)
+
+    expect(setHasShadow).toHaveBeenNthCalledWith(1, false)
+    expect(setHasShadow).toHaveBeenNthCalledWith(2, true)
   })
 })

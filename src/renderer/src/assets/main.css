@@ -60,6 +60,12 @@ html.is-win #root {
   border-radius: 8px;
 }
 
+/* 0 UI has no native-looking rounded frame. The main process also disables the
+   macOS window shadow while this attribute is active. */
+html[data-zero-ui-mode='true'] #root {
+  border-radius: 0;
+}
+
 #app-header {
   @apply flex h-12 items-center border-b text-[var(--text-primary)];
   border-color: var(--hairline);
@@ -213,43 +219,53 @@ body svg {
 .zero-ui-shell {
   height: 100vh !important;
   overflow: auto;
-  padding: 4px;
+  padding: 0;
   scrollbar-width: none;
 }
 .zero-ui-shell::-webkit-scrollbar {
   display: none;
 }
 .zero-ui-output {
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
-  padding: 6px 8px;
-  background: rgba(3, 7, 12, 0.34);
-  color: #f4f7fa;
+  border: 0;
+  border-radius: 0;
+  padding: 2px 3px;
+  background: color-mix(
+    in srgb,
+    var(--zero-ui-background-color) calc(var(--zero-ui-background-opacity) * 100%),
+    transparent
+  );
+  color: var(--zero-ui-text-color);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: var(--answer-font-size, 14px);
-  line-height: 1.35;
+  line-height: 1.25;
   tab-size: 2;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.72);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  text-shadow: none;
+  box-shadow: none;
 }
-html[data-zero-ui-backdrop='light'] .zero-ui-output {
+html[data-zero-ui-border='true'] .zero-ui-output {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+html[data-zero-ui-backdrop='light'][data-zero-ui-border='true'] .zero-ui-output {
   border-color: rgba(10, 18, 28, 0.14);
-  background: rgba(255, 255, 255, 0.48);
-  color: #111820;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.82);
-  box-shadow: 0 1px 4px rgba(20, 28, 36, 0.08);
 }
-html[data-zero-ui-backdrop='dark'] .zero-ui-output {
+html[data-zero-ui-backdrop='dark'][data-zero-ui-border='true'] .zero-ui-output {
   border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(3, 7, 12, 0.34);
-  color: #f4f7fa;
 }
 .zero-ui-output.is-error {
   border-color: color-mix(in srgb, #ef6a72 55%, transparent);
   color: #ffb4b8;
+}
+.zero-ui-empty-hint {
+  padding: 3px 4px;
+  color: var(--zero-ui-text-color);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: max(8px, var(--ui-font-size, 12px));
+  line-height: 1.25;
+  opacity: 0.72;
 }
 .chat-shot-tag {
   @apply absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center;

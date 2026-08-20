@@ -6,8 +6,8 @@ export const FONT_SIZE_DEFAULTS: Record<FontSizeTarget, number> = {
 }
 
 export const FONT_SIZE_MINIMUMS: Record<FontSizeTarget, number> = {
-  ui: 9,
-  answer: 8
+  ui: 8,
+  answer: 6
 }
 
 export const FONT_SIZE_MAXIMUMS: Record<FontSizeTarget, number> = {
@@ -19,6 +19,6 @@ export function clampFontSize(target: FontSizeTarget, value: number): number {
   const finiteValue = Number.isFinite(value) ? value : FONT_SIZE_DEFAULTS[target]
   return Math.min(
     FONT_SIZE_MAXIMUMS[target],
-    Math.max(FONT_SIZE_MINIMUMS[target], Math.round(finiteValue))
+    Math.max(FONT_SIZE_MINIMUMS[target], Math.round(finiteValue * 2) / 2)
   )
 }

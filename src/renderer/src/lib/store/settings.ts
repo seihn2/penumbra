@@ -29,8 +29,12 @@ import {
   type TrafficLightMode
 } from '../../../../shared/traffic-light-mode'
 import {
+  clampZeroUiBackgroundOpacity,
+  DEFAULT_ZERO_UI_BORDER_VISIBLE,
   DEFAULT_ZERO_UI_BACKDROP,
+  ZERO_UI_PALETTE_DEFAULTS,
   sanitizeZeroUiBackdrop,
+  sanitizeZeroUiColor,
   type ZeroUiBackdrop
 } from '../../../../shared/zero-ui-theme'
 
@@ -91,6 +95,13 @@ export interface Settings {
   trafficLightMode: TrafficLightMode
   zeroUiMode: boolean
   zeroUiBackdrop: ZeroUiBackdrop
+  zeroUiDarkTextColor: string
+  zeroUiDarkBackgroundColor: string
+  zeroUiDarkBackgroundOpacity: number
+  zeroUiLightTextColor: string
+  zeroUiLightBackgroundColor: string
+  zeroUiLightBackgroundOpacity: number
+  zeroUiBorderVisible: boolean
   contentProtectionEnabled: boolean
   reduceMotion: MotionPreference
 }
@@ -171,6 +182,13 @@ const defaultSettings: Settings = {
   trafficLightMode: DEFAULT_TRAFFIC_LIGHT_MODE,
   zeroUiMode: false,
   zeroUiBackdrop: DEFAULT_ZERO_UI_BACKDROP,
+  zeroUiDarkTextColor: ZERO_UI_PALETTE_DEFAULTS.dark.textColor,
+  zeroUiDarkBackgroundColor: ZERO_UI_PALETTE_DEFAULTS.dark.backgroundColor,
+  zeroUiDarkBackgroundOpacity: ZERO_UI_PALETTE_DEFAULTS.dark.backgroundOpacity,
+  zeroUiLightTextColor: ZERO_UI_PALETTE_DEFAULTS.light.textColor,
+  zeroUiLightBackgroundColor: ZERO_UI_PALETTE_DEFAULTS.light.backgroundColor,
+  zeroUiLightBackgroundOpacity: ZERO_UI_PALETTE_DEFAULTS.light.backgroundOpacity,
+  zeroUiBorderVisible: DEFAULT_ZERO_UI_BORDER_VISIBLE,
   contentProtectionEnabled: true,
   reduceMotion: 'system'
 }
@@ -217,6 +235,13 @@ function toPersistedSettings(state: SettingsStore): PersistedSettings {
     trafficLightMode: state.trafficLightMode,
     zeroUiMode: state.zeroUiMode,
     zeroUiBackdrop: state.zeroUiBackdrop,
+    zeroUiDarkTextColor: state.zeroUiDarkTextColor,
+    zeroUiDarkBackgroundColor: state.zeroUiDarkBackgroundColor,
+    zeroUiDarkBackgroundOpacity: state.zeroUiDarkBackgroundOpacity,
+    zeroUiLightTextColor: state.zeroUiLightTextColor,
+    zeroUiLightBackgroundColor: state.zeroUiLightBackgroundColor,
+    zeroUiLightBackgroundOpacity: state.zeroUiLightBackgroundOpacity,
+    zeroUiBorderVisible: state.zeroUiBorderVisible,
     contentProtectionEnabled: state.contentProtectionEnabled,
     reduceMotion: state.reduceMotion
   }
@@ -306,7 +331,7 @@ export const useSettingsStore = create<SettingsStore>()(
       name: 'interview-coder-settings',
       storage: createJSONStorage(() => localStorage),
       partialize: toPersistedSettings,
-      version: 21,
+      version: 22,
       migrate: migratePersistedSettings
     }
   )
@@ -349,6 +374,15 @@ export function migratePersistedSettings(persistedState: unknown, fromVersion: n
   if (fromVersion < 20) {
     sanitized.codeBlockTheme = DEFAULT_CODE_BLOCK_THEME
     sanitized.trafficLightMode = legacyHideTrafficLights ? 'hidden' : DEFAULT_TRAFFIC_LIGHT_MODE
+  }
+  if (fromVersion < 22) {
+    sanitized.zeroUiDarkTextColor = ZERO_UI_PALETTE_DEFAULTS.dark.textColor
+    sanitized.zeroUiDarkBackgroundColor = ZERO_UI_PALETTE_DEFAULTS.dark.backgroundColor
+    sanitized.zeroUiDarkBackgroundOpacity = ZERO_UI_PALETTE_DEFAULTS.dark.backgroundOpacity
+    sanitized.zeroUiLightTextColor = ZERO_UI_PALETTE_DEFAULTS.light.textColor
+    sanitized.zeroUiLightBackgroundColor = ZERO_UI_PALETTE_DEFAULTS.light.backgroundColor
+    sanitized.zeroUiLightBackgroundOpacity = ZERO_UI_PALETTE_DEFAULTS.light.backgroundOpacity
+    sanitized.zeroUiBorderVisible = DEFAULT_ZERO_UI_BORDER_VISIBLE
   }
   return sanitized
 }
@@ -400,6 +434,30 @@ export function sanitizePersistedSettings(persistedState: unknown): Settings {
     sanitized.codeBlockTheme = sanitizeCodeBlockTheme(sanitized.codeBlockTheme)
     sanitized.trafficLightMode = sanitizeTrafficLightMode(sanitized.trafficLightMode)
     sanitized.zeroUiBackdrop = sanitizeZeroUiBackdrop(sanitized.zeroUiBackdrop)
+    sanitized.zeroUiDarkTextColor = sanitizeZeroUiColor(
+      sanitized.zeroUiDarkTextColor,
+      ZERO_UI_PALETTE_DEFAULTS.dark.textColor
+    )
+    sanitized.zeroUiDarkBackgroundColor = sanitizeZeroUiColor(
+      sanitized.zeroUiDarkBackgroundColor,
+      ZERO_UI_PALETTE_DEFAULTS.dark.backgroundColor
+    )
+    sanitized.zeroUiDarkBackgroundOpacity = clampZeroUiBackgroundOpacity(
+      sanitized.zeroUiDarkBackgroundOpacity,
+      ZERO_UI_PALETTE_DEFAULTS.dark.backgroundOpacity
+    )
+    sanitized.zeroUiLightTextColor = sanitizeZeroUiColor(
+      sanitized.zeroUiLightTextColor,
+      ZERO_UI_PALETTE_DEFAULTS.light.textColor
+    )
+    sanitized.zeroUiLightBackgroundColor = sanitizeZeroUiColor(
+      sanitized.zeroUiLightBackgroundColor,
+      ZERO_UI_PALETTE_DEFAULTS.light.backgroundColor
+    )
+    sanitized.zeroUiLightBackgroundOpacity = clampZeroUiBackgroundOpacity(
+      sanitized.zeroUiLightBackgroundOpacity,
+      ZERO_UI_PALETTE_DEFAULTS.light.backgroundOpacity
+    )
     return sanitized
   } catch {
     return { ...defaultSettings }
@@ -488,6 +546,13 @@ export const useAppearanceSettings = () =>
       trafficLightMode: state.trafficLightMode,
       zeroUiMode: state.zeroUiMode,
       zeroUiBackdrop: state.zeroUiBackdrop,
+      zeroUiDarkTextColor: state.zeroUiDarkTextColor,
+      zeroUiDarkBackgroundColor: state.zeroUiDarkBackgroundColor,
+      zeroUiDarkBackgroundOpacity: state.zeroUiDarkBackgroundOpacity,
+      zeroUiLightTextColor: state.zeroUiLightTextColor,
+      zeroUiLightBackgroundColor: state.zeroUiLightBackgroundColor,
+      zeroUiLightBackgroundOpacity: state.zeroUiLightBackgroundOpacity,
+      zeroUiBorderVisible: state.zeroUiBorderVisible,
       updateSetting: state.updateSetting
     }))
   )

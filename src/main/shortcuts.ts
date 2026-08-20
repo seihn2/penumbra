@@ -14,7 +14,7 @@ import {
 } from './ai'
 import { setMousePassthrough, state, toggleMousePassthrough } from './state'
 import { applyDockVisibility, settings } from './settings'
-import { applyTrafficLightMode } from './services/window-appearance'
+import { applyTrafficLightMode, applyZeroUiWindowAppearance } from './services/window-appearance'
 import {
   getTranscriptionText,
   clearTranscriptionText,
@@ -39,7 +39,7 @@ import {
 import { getShortcutRegistrationKeys } from '../shared/shortcut-keys'
 import { detectConflicts } from '../shared/shortcut-scope'
 import { asrLog } from './asr/asr-log'
-import type { OpacityTarget } from '../shared/opacity'
+import type { AdjustableOpacityTarget } from '../shared/opacity'
 import { probeAsrConnection } from './asr/probe'
 import { aggregateSelfCheck, type CheckResult } from '../shared/self-check'
 import { evaluateControl } from '../shared/config-dependency'
@@ -231,6 +231,7 @@ const callbacks: Record<string, () => void> = {
     const next = !settings.zeroUiMode
     settings.zeroUiMode = next
     applyTrafficLightMode(mainWindow, next ? 'hidden' : settings.trafficLightMode)
+    applyZeroUiWindowAppearance(mainWindow, next)
     mainWindow.webContents.send('zero-ui-mode-changed', next)
     showOverlayWindow(mainWindow)
   },
@@ -304,17 +305,19 @@ const callbacks: Record<string, () => void> = {
     mainWindow.webContents.send('transcription-cleared')
   },
 
-  increaseOverallOpacity: () => sendOpacityAdjust('overall', 0.05),
-  decreaseOverallOpacity: () => sendOpacityAdjust('overall', -0.05),
-  increaseWindowOpacity: () => sendOpacityAdjust('window', 0.05),
-  decreaseWindowOpacity: () => sendOpacityAdjust('window', -0.05),
-  increaseTextOpacity: () => sendOpacityAdjust('text', 0.05),
-  decreaseTextOpacity: () => sendOpacityAdjust('text', -0.05),
-  increaseIconOpacity: () => sendOpacityAdjust('icon', 0.05),
-  decreaseIconOpacity: () => sendOpacityAdjust('icon', -0.05)
+  increaseOverallOpacity: () => sendOpacityAdjust('overall', 0.01),
+  decreaseOverallOpacity: () => sendOpacityAdjust('overall', -0.01),
+  increaseWindowOpacity: () => sendOpacityAdjust('window', 0.01),
+  decreaseWindowOpacity: () => sendOpacityAdjust('window', -0.01),
+  increaseTextOpacity: () => sendOpacityAdjust('text', 0.01),
+  decreaseTextOpacity: () => sendOpacityAdjust('text', -0.01),
+  increaseIconOpacity: () => sendOpacityAdjust('icon', 0.01),
+  decreaseIconOpacity: () => sendOpacityAdjust('icon', -0.01),
+  increaseZeroUiBackgroundOpacity: () => sendOpacityAdjust('zeroUiBackground', 0.01),
+  decreaseZeroUiBackgroundOpacity: () => sendOpacityAdjust('zeroUiBackground', -0.01)
 }
 
-function sendOpacityAdjust(target: OpacityTarget, delta: number) {
+function sendOpacityAdjust(target: AdjustableOpacityTarget, delta: number) {
   const mainWindow = global.mainWindow
   if (!mainWindow || mainWindow.isDestroyed()) return
   mainWindow.webContents.send('adjust-opacity', { target, delta })

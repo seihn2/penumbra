@@ -60,6 +60,18 @@ describe('validateReleaseConfig', () => {
   it('does not flag notarize:false when there is no signing identity', () => {
     const c = { ...READY, hasSigningIdentity: false, notarize: false }
     expect(codes(c)).not.toContain('notarize-disabled-with-identity')
+    expect(codes(c)).toContain('signing-identity-missing-tcc-unstable')
+  })
+
+  it('accepts a stable local identity for TCC without treating it as notarizable', () => {
+    const c = {
+      ...READY,
+      hasSigningIdentity: false,
+      hasStableLocalSigningIdentity: true,
+      notarize: false
+    }
+    expect(codes(c)).not.toContain('signing-identity-missing-tcc-unstable')
+    expect(codes(c)).not.toContain('notarize-disabled-with-identity')
   })
 
   it('warns on a placeholder publish owner/repo', () => {
@@ -100,8 +112,9 @@ describe('validateReleaseConfig', () => {
       publishOwner: 'penumbra',
       publishRepo: 'penumbra'
     }
-    // Builds & runs (no errors) but not publishable (placeholder warning).
+    // Builds & runs, but TCC permission cannot survive an update and the feed
+    // still carries a placeholder warning.
     expect(isReleaseReady(current)).toBe(true)
-    expect(codes(current)).toEqual(['publish-placeholder'])
+    expect(codes(current)).toEqual(['signing-identity-missing-tcc-unstable', 'publish-placeholder'])
   })
 })

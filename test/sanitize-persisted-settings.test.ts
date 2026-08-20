@@ -43,16 +43,16 @@ describe('sanitizePersistedSettings', () => {
       textOpacity: 0,
       iconOpacity: 4
     })
-    expect(out.overallOpacity).toBe(0.2)
+    expect(out.overallOpacity).toBe(0.05)
     expect(out.opacity).toBe(0)
-    expect(out.textOpacity).toBe(0.2)
+    expect(out.textOpacity).toBe(0.05)
     expect(out.iconOpacity).toBe(1)
   })
 
   it('clamps persisted font sizes to their supported ranges', () => {
     const out = sanitizePersistedSettings({ uiFontSize: 100, answerFontSize: 1 })
     expect(out.uiFontSize).toBe(20)
-    expect(out.answerFontSize).toBe(8)
+    expect(out.answerFontSize).toBe(6)
   })
 
   it('ignores unknown keys', () => {
@@ -85,6 +85,26 @@ describe('sanitizePersistedSettings', () => {
   it('sanitizes the 0 UI light/dark backdrop choice', () => {
     expect(sanitizePersistedSettings({ zeroUiBackdrop: 'light' }).zeroUiBackdrop).toBe('light')
     expect(sanitizePersistedSettings({ zeroUiBackdrop: 'auto' }).zeroUiBackdrop).toBe('dark')
+  })
+
+  it('sanitizes custom 0 UI palettes, opacity and the border switch', () => {
+    const out = sanitizePersistedSettings({
+      zeroUiDarkTextColor: '#abc',
+      zeroUiDarkBackgroundColor: 'not-a-color',
+      zeroUiDarkBackgroundOpacity: 0.123,
+      zeroUiLightTextColor: '#123456',
+      zeroUiLightBackgroundColor: '#fed',
+      zeroUiLightBackgroundOpacity: -1,
+      zeroUiBorderVisible: true
+    })
+
+    expect(out.zeroUiDarkTextColor).toBe('#aabbcc')
+    expect(out.zeroUiDarkBackgroundColor).toBe('#03070c')
+    expect(out.zeroUiDarkBackgroundOpacity).toBe(0.12)
+    expect(out.zeroUiLightTextColor).toBe('#123456')
+    expect(out.zeroUiLightBackgroundColor).toBe('#ffeedd')
+    expect(out.zeroUiLightBackgroundOpacity).toBe(0)
+    expect(out.zeroUiBorderVisible).toBe(true)
   })
 
   it('sanitizes appearance enums and migrates the legacy traffic-light switch', () => {

@@ -9,7 +9,7 @@ import type { DebriefReport } from '../shared/debrief-report'
 import type { DualAudioState } from '../shared/audio-source-machine'
 import { parseClaims, type Claim } from '../shared/answer-provenance'
 import type { SoakReport } from '../shared/soak-health'
-import type { OpacityTarget } from '../shared/opacity'
+import type { AdjustableOpacityTarget } from '../shared/opacity'
 import type { SecretState } from '../shared/secret-lifecycle'
 import type { AnswerServiceProfileActivation } from '../shared/answer-service-profile'
 import type {
@@ -58,7 +58,9 @@ const api = {
   // Set native window opacity (whole window)
   setWindowOpacity: (value: number) => ipcRenderer.invoke('setWindowOpacity', value),
   // Listen for opacity adjustment from global shortcuts
-  onAdjustOpacity: (callback: (payload: { target: OpacityTarget; delta: number }) => void) => {
+  onAdjustOpacity: (
+    callback: (payload: { target: AdjustableOpacityTarget; delta: number }) => void
+  ) => {
     ipcRenderer.on('adjust-opacity', (_event, payload) => callback(payload))
   },
   removeAdjustOpacityListener: () => {

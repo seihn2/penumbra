@@ -46,7 +46,7 @@ function OpacitySlider({
         aria-label={label}
         min={min}
         max={1}
-        step={0.05}
+        step={0.01}
         value={[value]}
         onValueChange={(nextValue) => onChange(nextValue[0])}
       />
@@ -74,13 +74,49 @@ function FontSizeSlider({
         aria-label={label}
         min={FONT_SIZE_MINIMUMS[target]}
         max={FONT_SIZE_MAXIMUMS[target]}
-        step={1}
+        step={0.5}
         value={[value]}
         onValueChange={(nextValue) => onChange(nextValue[0])}
       />
       <span className="text-base">A</span>
-      <span className="w-10 shrink-0 text-right tabular-nums">{value}px</span>
+      <span className="w-12 shrink-0 text-right tabular-nums">
+        {Number.isInteger(value) ? value : value.toFixed(1)}px
+      </span>
     </div>
+  )
+}
+
+function ColorControl({
+  label,
+  value,
+  onChange
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex h-9 min-w-36 items-center gap-2 rounded-[var(--r-control)] border border-[var(--hairline)] bg-[var(--surface-3)] px-2.5 text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--accent-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-border)]"
+          title={label}
+          aria-label={`${label}: ${value}`}
+        >
+          <span
+            aria-hidden="true"
+            className="h-5 w-5 shrink-0 rounded-full border border-[var(--hairline-strong)]"
+            style={{ backgroundColor: value }}
+          />
+          <span className="flex-1 text-left font-mono tabular-nums">{value}</span>
+          <Pipette aria-hidden="true" className="h-3.5 w-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-auto p-3">
+        <ColorPicker value={value} onChange={onChange} />
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -100,6 +136,13 @@ export function AppearanceSettingsSection() {
     trafficLightMode,
     zeroUiMode,
     zeroUiBackdrop,
+    zeroUiDarkTextColor,
+    zeroUiDarkBackgroundColor,
+    zeroUiDarkBackgroundOpacity,
+    zeroUiLightTextColor,
+    zeroUiLightBackgroundColor,
+    zeroUiLightBackgroundOpacity,
+    zeroUiBorderVisible,
     updateSetting
   } = useAppearanceSettings()
   const zeroUiShortcut = useShortcut('toggleZeroUiMode')
@@ -108,6 +151,19 @@ export function AppearanceSettingsSection() {
   // used as text/icon color). Low contrast → an a11y hint (P1#33).
   const accentContrast = contrastRatio(accentColor, SURFACE_1)
   const accentReadable = meetsAaNormal(accentColor, SURFACE_1)
+  const zeroUiTextColor = zeroUiBackdrop === 'light' ? zeroUiLightTextColor : zeroUiDarkTextColor
+  const zeroUiBackgroundColor =
+    zeroUiBackdrop === 'light' ? zeroUiLightBackgroundColor : zeroUiDarkBackgroundColor
+  const zeroUiBackgroundOpacity =
+    zeroUiBackdrop === 'light' ? zeroUiLightBackgroundOpacity : zeroUiDarkBackgroundOpacity
+  const zeroUiTextColorKey =
+    zeroUiBackdrop === 'light' ? 'zeroUiLightTextColor' : 'zeroUiDarkTextColor'
+  const zeroUiBackgroundColorKey =
+    zeroUiBackdrop === 'light' ? 'zeroUiLightBackgroundColor' : 'zeroUiDarkBackgroundColor'
+  const zeroUiBackgroundOpacityKey =
+    zeroUiBackdrop === 'light' ? 'zeroUiLightBackgroundOpacity' : 'zeroUiDarkBackgroundOpacity'
+  const zeroUiContrast = contrastRatio(zeroUiTextColor, zeroUiBackgroundColor)
+  const zeroUiReadable = meetsAaNormal(zeroUiTextColor, zeroUiBackgroundColor)
 
   return (
     <SettingsSection
@@ -233,6 +289,57 @@ export function AppearanceSettingsSection() {
             </option>
           ))}
         </select>
+      </SettingRow>
+      <SettingRow
+        title={t('settings.appearance.zeroUiBorder')}
+        description={t('settings.appearance.zeroUiBorderDesc')}
+      >
+        <Switch
+          checked={zeroUiBorderVisible}
+          onCheckedChange={(checked) => updateSetting('zeroUiBorderVisible', checked)}
+          aria-label={t('settings.appearance.zeroUiBorder')}
+        />
+      </SettingRow>
+      <SettingRow
+        title={t('settings.appearance.zeroUiTextColor')}
+        description={t('settings.appearance.zeroUiTextColorDesc')}
+      >
+        <ColorControl
+          label={t('settings.appearance.zeroUiTextColor')}
+          value={zeroUiTextColor}
+          onChange={(value) => updateSetting(zeroUiTextColorKey, value)}
+        />
+      </SettingRow>
+      <SettingRow
+        title={t('settings.appearance.zeroUiBackgroundColor')}
+        description={t('settings.appearance.zeroUiBackgroundColorDesc')}
+      >
+        <div>
+          <ColorControl
+            label={t('settings.appearance.zeroUiBackgroundColor')}
+            value={zeroUiBackgroundColor}
+            onChange={(value) => updateSetting(zeroUiBackgroundColorKey, value)}
+          />
+          {!zeroUiReadable && zeroUiContrast !== null && (
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-500">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              {t('settings.appearance.zeroUiLowContrast', {
+                ratio: zeroUiContrast.toFixed(1)
+              })}
+            </div>
+          )}
+        </div>
+      </SettingRow>
+      <SettingRow
+        title={t('settings.appearance.zeroUiBackgroundOpacity')}
+        description={t('settings.appearance.zeroUiBackgroundOpacityDesc')}
+      >
+        <OpacitySlider
+          label={t('settings.appearance.zeroUiBackgroundOpacity')}
+          min={0}
+          value={zeroUiBackgroundOpacity}
+          onChange={(value) => updateSetting(zeroUiBackgroundOpacityKey, value)}
+        />
       </SettingRow>
       <SettingRow
         title={t('settings.appearance.uiFontSize')}

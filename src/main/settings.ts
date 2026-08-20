@@ -14,7 +14,7 @@ import { DEFAULT_ANSWER_SERVICE_CREDENTIAL_REF } from '../shared/answer-service-
 import { createActiveConfig, startDraft, editDraft, validateDraft } from '../shared/config-revision'
 import { asrLog } from './asr/asr-log'
 import { DEFAULT_ASR_MODEL } from '../shared/asr-models'
-import { applyTrafficLightMode } from './services/window-appearance'
+import { applyTrafficLightMode, applyZeroUiWindowAppearance } from './services/window-appearance'
 import { setOverlayDockVisibility } from './services/window-overlay'
 import { DEFAULT_ANSWER_API_PROTOCOL } from '../shared/answer-api-protocol'
 import { DEFAULT_TRAFFIC_LIGHT_MODE } from '../shared/traffic-light-mode'
@@ -133,6 +133,7 @@ ipcMain.handle('updateAppSettings', (_event, value) => {
       global.mainWindow,
       settings.zeroUiMode ? 'hidden' : settings.trafficLightMode
     )
+    applyZeroUiWindowAppearance(global.mainWindow, settings.zeroUiMode)
   }
   if ('contentProtectionEnabled' in _settings) {
     global.mainWindow?.setContentProtection(settings.contentProtectionEnabled !== false)

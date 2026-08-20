@@ -1,5 +1,10 @@
 export type OpacityTarget = 'overall' | 'window' | 'text' | 'icon'
 
+/** Opacity channels that can be adjusted by the global shortcut bridge. The
+ * 0 UI surface lives in renderer settings, so it is intentionally separate
+ * from the native window opacity channels above. */
+export type AdjustableOpacityTarget = OpacityTarget | 'zeroUiBackground'
+
 export const OPACITY_DEFAULTS: Record<OpacityTarget, number> = {
   overall: 1,
   window: 0.8,
@@ -8,9 +13,9 @@ export const OPACITY_DEFAULTS: Record<OpacityTarget, number> = {
 }
 
 export const OPACITY_MINIMUMS: Record<OpacityTarget, number> = {
-  overall: 0.2,
+  overall: 0.05,
   window: 0,
-  text: 0.2,
+  text: 0.05,
   icon: 0
 }
 

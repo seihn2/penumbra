@@ -573,6 +573,7 @@ const en: TranslationSchema = {
       zeroUiMode: '0 UI Plain Text Mode',
       zeroUiModeDesc:
         'Hide every control and screenshot; show only AI replies as preformatted text. Use the global shortcut to toggle it anytime.',
+      zeroUiEmptyHint: '0 UI ready · Alt+Shift+H restores the full Penumbra window',
       zeroUiEnabled: '0 UI plain text mode enabled',
       zeroUiDisabled: '0 UI plain text mode disabled',
       zeroUiBackdrop: '0 UI Backdrop',
@@ -582,6 +583,18 @@ const en: TranslationSchema = {
         dark: 'Dark content behind (light text)',
         light: 'Light content behind (dark text)'
       },
+      zeroUiBorder: '0 UI Border',
+      zeroUiBorderDesc: 'Show a thin text-panel border. Off also removes the panel shadow.',
+      zeroUiTextColor: '0 UI Text Color',
+      zeroUiTextColorDesc: 'Saved separately for the selected light or dark backdrop profile.',
+      zeroUiBackgroundColor: '0 UI Background Color',
+      zeroUiBackgroundColorDesc:
+        'Choose the panel color for the selected backdrop profile; opacity is controlled below.',
+      zeroUiBackgroundOpacity: '0 UI Background Opacity',
+      zeroUiBackgroundOpacityDesc:
+        'Fine-tune the panel from fully transparent to opaque in one-percent steps.',
+      zeroUiLowContrast:
+        'Low text contrast ({{ratio}}:1); the smallest font sizes may be hard to read.',
       uiFontSize: 'Interface Font Size',
       uiFontSizeDesc: 'Adjust navigation, settings and general UI text; answers stay independent.',
       codeBlockTheme: 'Code Block Style',
@@ -931,6 +944,14 @@ const en: TranslationSchema = {
     decreaseIconOpacity: {
       label: 'Decrease Icon Opacity',
       desc: 'Make buttons and status icons more transparent'
+    },
+    increaseZeroUiBackgroundOpacity: {
+      label: 'Increase 0 UI Background Opacity',
+      desc: 'Make the 0 UI surface more opaque'
+    },
+    decreaseZeroUiBackgroundOpacity: {
+      label: 'Decrease 0 UI Background Opacity',
+      desc: 'Make the 0 UI surface more transparent, down to fully clear'
     },
     takeScreenshot: {
       label: 'Screenshot',

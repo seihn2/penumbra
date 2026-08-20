@@ -569,6 +569,7 @@ const ja: TranslationSchema = {
       zeroUiMode: '0 UI プレーンテキストモード',
       zeroUiModeDesc:
         'すべての操作 UI とスクリーンショットを隠し、AI の回答だけを整形済みテキストで表示します。グローバルショートカットでいつでも切り替えられます。',
+      zeroUiEmptyHint: '0 UI 準備完了 · Alt+Shift+H で Penumbra の全画面を復元',
       zeroUiEnabled: '0 UI プレーンテキストモードを有効にしました',
       zeroUiDisabled: '0 UI プレーンテキストモードを無効にしました',
       zeroUiBackdrop: '0 UI 背景への適応',
@@ -578,6 +579,16 @@ const ja: TranslationSchema = {
         dark: '背後が暗い（明るい文字）',
         light: '背後が明るい（暗い文字）'
       },
+      zeroUiBorder: '0 UI の枠線',
+      zeroUiBorderDesc: 'テキストパネルの細い枠線を表示します。オフでは影も削除します。',
+      zeroUiTextColor: '0 UI の文字色',
+      zeroUiTextColorDesc: '明るい背景用と暗い背景用のプロファイルに個別保存されます。',
+      zeroUiBackgroundColor: '0 UI の背景色',
+      zeroUiBackgroundColorDesc: '選択中の背景色を指定します。透明度は次の項目で調整します。',
+      zeroUiBackgroundOpacity: '0 UI 背景の不透明度',
+      zeroUiBackgroundOpacityDesc: '完全透明から不透明まで 1% 単位で細かく調整できます。',
+      zeroUiLowContrast:
+        '文字と背景のコントラストが低いです（{{ratio}}:1）。最小文字は読みにくい場合があります。',
       uiFontSize: 'UI の文字サイズ',
       uiFontSizeDesc: 'ナビゲーション、設定、通常 UI の文字を調整します。解答は個別設定です。',
       codeBlockTheme: 'コードブロックの表示',
@@ -924,6 +935,14 @@ const ja: TranslationSchema = {
     decreaseIconOpacity: {
       label: 'アイコンの不透明度を下げる',
       desc: 'ボタンと状態アイコンを透明にします'
+    },
+    increaseZeroUiBackgroundOpacity: {
+      label: '0 UI 背景の不透明度を上げる',
+      desc: '0 UI の面をより不透明にします'
+    },
+    decreaseZeroUiBackgroundOpacity: {
+      label: '0 UI 背景の不透明度を下げる',
+      desc: '0 UI の面を完全透明まで透明にします'
     },
     takeScreenshot: {
       label: 'スクリーンショット',

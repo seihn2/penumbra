@@ -56,7 +56,7 @@ import { useModalDismiss } from './hooks/useModalDismiss'
 
 export function AppContent({ zeroUiMode = false }: { zeroUiMode?: boolean }) {
   const { t } = useTranslation()
-  const { errorMessage, setErrorMessage } = useSolutionContent()
+  const { errorMessage, solutionChunks, setErrorMessage } = useSolutionContent()
   const [, setRecentScreenshots] = useState<string[]>([])
   const messages = useChatMessages()
   // Cap rendered DOM rows to the most recent 60 (P0#16): older messages stay in
@@ -106,6 +106,7 @@ export function AppContent({ zeroUiMode = false }: { zeroUiMode?: boolean }) {
     const outputs = renderedMessages.filter(
       (message) => message.role === 'assistant' && (message.text || message.error)
     )
+    const liveSolution = solutionChunks.join('')
     return (
       <main
         id="app-content"
@@ -123,10 +124,20 @@ export function AppContent({ zeroUiMode = false }: { zeroUiMode?: boolean }) {
             <code>{message.text}</code>
           </pre>
         ))}
-        {errorMessage && outputs.length === 0 && (
+        {outputs.length === 0 && liveSolution && (
+          <pre className="zero-ui-output">
+            <code>{liveSolution}</code>
+          </pre>
+        )}
+        {errorMessage && outputs.length === 0 && !liveSolution && (
           <pre className="zero-ui-output is-error">
             <code>{errorMessage}</code>
           </pre>
+        )}
+        {outputs.length === 0 && !liveSolution && !errorMessage && (
+          <div className="zero-ui-empty-hint" role="status">
+            {t('settings.appearance.zeroUiEmptyHint')}
+          </div>
         )}
       </main>
     )

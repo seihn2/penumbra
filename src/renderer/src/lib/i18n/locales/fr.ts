@@ -585,6 +585,7 @@ const fr: TranslationSchema = {
       zeroUiMode: 'Mode texte brut 0 UI',
       zeroUiModeDesc:
         'Masque les contrôles et captures ; affiche uniquement les réponses IA en texte préformaté. Le raccourci global permet de basculer à tout moment.',
+      zeroUiEmptyHint: '0 UI prêt · Alt+Shift+H restaure la fenêtre Penumbra complète',
       zeroUiEnabled: 'Mode texte brut 0 UI activé',
       zeroUiDisabled: 'Mode texte brut 0 UI désactivé',
       zeroUiBackdrop: 'Fond sous le mode 0 UI',
@@ -594,6 +595,19 @@ const fr: TranslationSchema = {
         dark: 'Contenu sombre dessous (texte clair)',
         light: 'Contenu clair dessous (texte sombre)'
       },
+      zeroUiBorder: 'Bordure 0 UI',
+      zeroUiBorderDesc:
+        "Affiche une fine bordure autour du texte. La désactiver supprime aussi l'ombre.",
+      zeroUiTextColor: 'Couleur du texte 0 UI',
+      zeroUiTextColorDesc: 'Enregistrée séparément pour les profils de fond clair et sombre.',
+      zeroUiBackgroundColor: 'Couleur de fond 0 UI',
+      zeroUiBackgroundColorDesc:
+        "Choisissez la couleur du panneau ; l'opacité se règle séparément ci-dessous.",
+      zeroUiBackgroundOpacity: 'Opacité du fond 0 UI',
+      zeroUiBackgroundOpacityDesc:
+        'Réglez finement le panneau de totalement transparent à opaque par pas de 1 %.',
+      zeroUiLowContrast:
+        'Contraste faible ({{ratio}}:1) ; les plus petites tailles peuvent être difficiles à lire.',
       uiFontSize: "Taille du Texte de l'Interface",
       uiFontSizeDesc:
         'Ajustez la navigation, les réglages et le texte général ; les réponses restent séparées.',
@@ -946,6 +960,14 @@ const fr: TranslationSchema = {
     decreaseIconOpacity: {
       label: "Diminuer l'opacité des icônes",
       desc: 'Rend les boutons et icônes d’état plus transparents'
+    },
+    increaseZeroUiBackgroundOpacity: {
+      label: "Augmenter l'opacité du fond 0 UI",
+      desc: 'Rend la surface 0 UI plus opaque'
+    },
+    decreaseZeroUiBackgroundOpacity: {
+      label: "Diminuer l'opacité du fond 0 UI",
+      desc: 'Rend la surface 0 UI transparente, jusqu’à zéro'
     },
     takeScreenshot: {
       label: 'Capture',

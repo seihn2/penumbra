@@ -11,14 +11,16 @@ import {
 describe('font size settings', () => {
   it('keeps UI and answer sizes independent', () => {
     expect(FONT_SIZE_DEFAULTS).toEqual({ ui: 16, answer: 14 })
-    expect(FONT_SIZE_MINIMUMS).toEqual({ ui: 9, answer: 8 })
+    expect(FONT_SIZE_MINIMUMS).toEqual({ ui: 8, answer: 6 })
     expect(FONT_SIZE_MAXIMUMS).toEqual({ ui: 20, answer: 22 })
   })
 
   it('rounds, clamps and recovers invalid values', () => {
-    expect(clampFontSize('ui', 17.6)).toBe(18)
+    expect(clampFontSize('ui', 17.6)).toBe(17.5)
     expect(clampFontSize('ui', 100)).toBe(20)
-    expect(clampFontSize('answer', 1)).toBe(8)
+    expect(clampFontSize('answer', 1)).toBe(6)
+    expect(clampFontSize('answer', 7.24)).toBe(7)
+    expect(clampFontSize('answer', 7.26)).toBe(7.5)
     expect(clampFontSize('answer', Number.NaN)).toBe(14)
   })
 

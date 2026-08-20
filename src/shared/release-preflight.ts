@@ -30,6 +30,9 @@ export interface ReleaseConfig {
   /** Whether a real Apple signing identity is configured (CSC_LINK / CSC_NAME
      present, or an Apple Developer certificate). */
   hasSigningIdentity?: boolean
+  /** Whether the local stable self-signed identity is installed. It preserves
+     TCC grants between local rebuilds but cannot be used for notarization. */
+  hasStableLocalSigningIdentity?: boolean
   /** Whether the hardened runtime is enabled (`mac.hardenedRuntime`). */
   hardenedRuntime?: boolean
   /** Info.plist usage-description keys declared under `mac.extendInfo`. */
@@ -63,9 +66,12 @@ const PLACEHOLDER_OWNERS = ['penumbra', 'example', 'your-org', 'owner', '']
 
    Rules:
    - appId missing → error; appId ≠ resignBundleId → error (TCC identifier drift).
+   - Neither a real nor stable local signing identity → warning: ad-hoc signing makes the designated
+     requirement depend on the build's CDHash, so macOS TCC grants (including
+     Screen Recording) do not survive an app update.
    - Real signing identity but notarize:false → warning (Gatekeeper will warn
-     users on first launch). No identity → notarization is impossible, so
-     notarize:false is expected and NOT flagged.
+     users on first launch). No identity → notarization is impossible, so the
+     notarization-specific warning is not emitted.
    - Hardened runtime on but a required audio entitlement missing → error (the
      capability is silently denied at runtime).
    - Any required Info.plist usage-description key missing → error.
@@ -95,8 +101,12 @@ export function validateReleaseConfig(config: ReleaseConfig): PreflightIssue[] {
     }
   }
 
-  // Notarization only matters once a real identity exists; without one it's
-  // simply not achievable, so silence is correct.
+  if (config.hasSigningIdentity === false && config.hasStableLocalSigningIdentity !== true) {
+    warnings.push({ code: 'signing-identity-missing-tcc-unstable', severity: 'warning' })
+  }
+
+  // Notarization only matters once a real identity exists; without one it is
+  // not achievable. The separate warning above explains the TCC consequence.
   if (config.hasSigningIdentity && config.notarize === false) {
     warnings.push({ code: 'notarize-disabled-with-identity', severity: 'warning' })
   }

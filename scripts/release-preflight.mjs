@@ -20,6 +20,18 @@ import { findRunningPackagedAppProcesses } from '../src/shared/running-packaged-
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
+function hasStableLocalSigningIdentity() {
+  if (process.platform !== 'darwin') return false
+  try {
+    execFileSync('security', ['find-certificate', '-c', 'Penumbra Local Signing'], {
+      stdio: 'ignore'
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
 if (process.platform === 'darwin') {
   const processTable = execFileSync('ps', ['-axo', 'pid=,command='], { encoding: 'utf8' })
   const runningBuildTargets = findRunningPackagedAppProcesses(processTable, root)
@@ -36,7 +48,8 @@ const config = parseReleaseConfigSources({
   builderYaml: readFileSync(resolve(root, 'electron-builder.yml'), 'utf8'),
   entitlementsPlist: readFileSync(resolve(root, 'build/entitlements.mac.plist'), 'utf8'),
   signingHook: readFileSync(resolve(root, 'scripts/after-pack-mac-sign.cjs'), 'utf8'),
-  hasSigningIdentity: Boolean(process.env.CSC_LINK || process.env.CSC_NAME)
+  hasSigningIdentity: Boolean(process.env.CSC_LINK || process.env.CSC_NAME),
+  hasStableLocalSigningIdentity: hasStableLocalSigningIdentity()
 })
 
 const issues = validateReleaseConfig(config)

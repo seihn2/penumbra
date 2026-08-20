@@ -546,6 +546,7 @@ const zh = {
       zeroUiMode: '0 UI 纯文本模式',
       zeroUiModeDesc:
         '隐藏全部界面、截图和控件，只用代码块显示 AI 的纯文本回复。可用旁边的全局快捷键随时切换。',
+      zeroUiEmptyHint: '0 UI 已就绪 · 按 Alt+Shift+H 恢复完整 Penumbra 窗口',
       zeroUiEnabled: '已进入 0 UI 纯文本模式',
       zeroUiDisabled: '已退出 0 UI 纯文本模式',
       zeroUiBackdrop: '0 UI 底层背景适配',
@@ -554,6 +555,15 @@ const zh = {
         dark: '底层是深色（浅字）',
         light: '底层是浅色（深字）'
       },
+      zeroUiBorder: '0 UI 边框',
+      zeroUiBorderDesc: '控制纯文本面板是否显示细边框；关闭时也会移除面板阴影。',
+      zeroUiTextColor: '0 UI 字体颜色',
+      zeroUiTextColorDesc: '浅色和深色背景方案分别保存，当前修改选中的方案。',
+      zeroUiBackgroundColor: '0 UI 底色',
+      zeroUiBackgroundColorDesc: '设置当前背景方案的面板底色；透明程度可在下一项单独调节。',
+      zeroUiBackgroundOpacity: '0 UI 底色透明度',
+      zeroUiBackgroundOpacityDesc: '按 1% 精细调节，可降到完全透明。',
+      zeroUiLowContrast: '字体和底色对比度较低（{{ratio}}:1），最小字号可能难以辨认。',
       uiFontSize: '界面字号',
       uiFontSizeDesc: '调节导航、设置和普通界面文字；答案字号可单独调。',
       codeBlockTheme: '代码块样式',
@@ -861,6 +871,14 @@ const zh = {
     decreaseTextOpacity: { label: '降低文字不透明度', desc: '让内容区文字更透明' },
     increaseIconOpacity: { label: '增加图标不透明度', desc: '让按钮和状态图标更清晰' },
     decreaseIconOpacity: { label: '降低图标不透明度', desc: '让按钮和状态图标更透明' },
+    increaseZeroUiBackgroundOpacity: {
+      label: '增加 0 UI 底色不透明度',
+      desc: '让 0 UI 底色更实'
+    },
+    decreaseZeroUiBackgroundOpacity: {
+      label: '降低 0 UI 底色不透明度',
+      desc: '让 0 UI 底色更透明，最低可完全透明'
+    },
     takeScreenshot: { label: '截题并解答', desc: '截下题目并生成解法（会新开对话）' },
     appendScreenshot: {
       label: '追加截图',
